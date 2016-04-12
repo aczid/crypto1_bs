@@ -34,6 +34,12 @@ I have included a conversion of the test file `0xcafec0de.txt` included in the C
     $ ./solve_piwi_bs 0xcafec0de.bin
 
 
+Acknowledgements
+----------------
+
+Special thanks to Carlo Meijer, Roel Verdult, piwi and bla.
+
+
 License
 -------
 
@@ -58,11 +64,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-
-
-Acknowledgements
-----------------
-
-Special thanks to Carlo Meijer, Roel Verdult, piwi and bla.
 
