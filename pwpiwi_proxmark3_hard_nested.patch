@@ -11,10 +11,10 @@ index 91e595d..dc3557f 100644
  ZLIBSRCS = deflate.c adler32.c trees.c zutil.c inflate.c inffast.c inftrees.c
  ZLIB_FLAGS = -DZ_SOLO -DZ_PREFIX -DNO_GZIP -DZLIB_PM3_TUNED 
 diff --git a/client/cmdhfmfhard.c b/client/cmdhfmfhard.c
-index b3893ea..4a0bd38 100644
+index b3893ea..10ff98f 100644
 --- a/client/cmdhfmfhard.c
 +++ b/client/cmdhfmfhard.c
-@@ -20,18 +20,21 @@
+@@ -20,12 +20,15 @@
  #include <pthread.h>
  #include <locale.h>
  #include <math.h>
@@ -30,13 +30,6 @@ index b3893ea..4a0bd38 100644
  
  // uint32_t test_state_odd = 0;
  // uint32_t test_state_even = 0;
- 
- #define CONFIDENCE_THRESHOLD	0.95		// Collect nonces until we are certain enough that the following brute force is successfull
--#define GOOD_BYTES_REQUIRED		30
-+#define GOOD_BYTES_REQUIRED		28
- 
- 
- static const float p_K[257] = {		// the probability that a random nonce has a Sum Property == K 
 @@ -88,6 +91,8 @@ typedef struct noncelist {
  } noncelist_t;
  

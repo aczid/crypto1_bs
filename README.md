@@ -7,7 +7,7 @@ A pure C(99) implementation of the [Crypto-1 cipher](https://en.wikipedia.org/wi
 Background
 ----------
 
-I wrote this as a patch for [piwi's imlementation](https://github.com/pwpiwi/proxmark3/tree/hard_nested/) of the research documented in [Ciphertext-only cryptanalysis on Hardened Mifare Classic cards](http://www.cs.ru.nl/~rverdult/Ciphertext-only_Cryptanalysis_on_Hardened_Mifare_Classic_Cards-CCS_2015.pdf) after reading (most of) the paper, while it was still under [active development](http://www.proxmark.org/forum/viewtopic.php?id=2120).
+I wrote this as a patch for [piwi's imlementation](https://github.com/pwpiwi/proxmark3/tree/hard_nested/) of the research documented in [Ciphertext-only cryptanalysis on hardened Mifare Classic cards](http://www.cs.ru.nl/~rverdult/Ciphertext-only_Cryptanalysis_on_Hardened_Mifare_Classic_Cards-CCS_2015.pdf) after reading (most of) the paper, while it was still under [active development](http://www.proxmark.org/forum/viewtopic.php?id=2120).
 The final patch is included as `pwpiwi_proxmark3_hard_nested.patch`.
 
 Later on, another implementation of the same attack surfaced, [CraptEV1](http://crapto1.netgarage.org/).
@@ -33,6 +33,9 @@ I have included a conversion of the test file `0xcafec0de.txt` included in the C
 
     $ ./solve_piwi_bs 0xcafec0de.bin
 
+
+Acknowledgements
+----------------
 
 Special thanks to Carlo Meijer, Roel Verdult, piwi and bla.
 
