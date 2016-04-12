@@ -1,4 +1,4 @@
-// Bit-sliced Crypto-1 implementation (C) 2015 by Aram Verstegen
+// Bit-sliced Crypto-1 implementation (C) 2015-2016 by Aram Verstegen
 // The cipher states are stored with the least significant bit first, hence all bit indexes are reversed here
 
 #include "crypto1_bs.h"

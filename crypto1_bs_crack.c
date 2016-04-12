@@ -1,3 +1,6 @@
+// Bit-sliced Crypto-1 brute-forcing implementation (C) 2015-2016 by Aram Verstegen
+// Builds on the data structures returned by CraptEV1 craptev1_get_space(nonces, threshold, uid)
+
 #include <malloc.h>
 #include "crypto1_bs_crack.h"
 
