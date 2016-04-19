@@ -5,6 +5,11 @@
 #include <pthread.h>
 #include <sys/sysinfo.h>
 #include "craptev1.h"
+#include <inttypes.h>
+#define __STDC_FORMAT_MACROS
+#define llx PRIx64
+#define lli PRIi64
+#define lu PRIu32
 
 #define rev32(word) (((word & 0xff) << 24) | (((word >> 8) & 0xff) << 16) | (((word >> 16) & 0xff) << 8) | (((word >> 24) & 0xff)))
 
@@ -50,7 +55,7 @@ void* crack_states_thread(void* x){
         states_tested = total_states - craptev1_sizeof_space(space+j*5);
         printf("Cracking... %6.02f%%\n", (100.0*states_tested/(total_states)));
         if(key != -1){
-            printf("Found key: %012lx\n", key);
+            printf("Found key: %012"llx"\n", key);
             exit(0);
         }
     }
@@ -68,7 +73,7 @@ int main(int argc, char* argv[]){
 
     thread_count = get_nprocs_conf();
     pthread_t threads[thread_count];
-    printf("Starting %lu threads to test %lu states\n", thread_count, total_states);
+    printf("Starting %zu threads to test %zu states\n", thread_count, total_states);
     size_t i;
     states_tested = 0;
     for(i = 0; i < thread_count; i++){
@@ -77,7 +82,7 @@ int main(int argc, char* argv[]){
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
-    printf("Tested %lu states\n", states_tested);
+    printf("Tested %zu states\n", states_tested);
 
     craptev1_destroy_space(space);
     return 0;
