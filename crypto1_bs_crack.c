@@ -1,4 +1,4 @@
-// Bit-sliced Crypto-1 brute-forcing implementation (C) 2015-2016 by Aram Verstegen
+// Bit-sliced Crypto-1 brute-forcing implementation
 // Builds on the data structures returned by CraptEV1 craptev1_get_space(nonces, threshold, uid)
 /*
 Copyright (c) 2015-2016 Aram Verstegen
