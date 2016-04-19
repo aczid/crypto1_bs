@@ -8,6 +8,11 @@
 #include "craptev1.h"
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
+#include <inttypes.h>
+#define __STDC_FORMAT_MACROS
+#define llx PRIx64
+#define lli PRIi64
+#define lu PRIu32
 
 // linked from .so / .c files by bla
 extern uint64_t *readnonces(char* fname);
@@ -70,14 +75,14 @@ int main(int argc, char* argv[]){
     total_states_tested = 0;
     keys_found = 0;
 
-    printf("Starting %lu threads to test %lu states\n", thread_count, total_states);
+    printf("Starting %zu threads to test %zu states\n", thread_count, total_states);
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
-    printf("Tested %lu states\n", total_states_tested);
+    printf("Tested %zu states\n", total_states_tested);
 
     craptev1_destroy_space(space);
     return 0;

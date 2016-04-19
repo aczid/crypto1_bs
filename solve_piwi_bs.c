@@ -8,6 +8,11 @@
 #include "craptev1.h"
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
+#include <inttypes.h>
+#define __STDC_FORMAT_MACROS
+#define llx PRIx64
+#define lli PRIi64
+#define lu PRIu32
 
 uint64_t split(uint8_t p){
     return (((p & 0x8) >>3 )| ((p & 0x4) >> 2) << 8 | ((p & 0x2) >> 1) << 16 | (p & 0x1) << 24 );
@@ -46,7 +51,7 @@ void* crack_states_thread(void* x){
     for(j = thread_id; space[j * 5]; j += thread_count) {
         const uint64_t key = crack_states_bitsliced(space + j * 5);
         if(key != -1){
-            printf("Found key: %012lx\n", key);
+            printf("Found key: %012"llx"\n", key);
             __sync_fetch_and_add(&keys_found, 1);
             break;
         } else if(keys_found){
@@ -94,14 +99,14 @@ int main(int argc, char* argv[]){
     total_states_tested = 0;
     keys_found = 0;
 
-    printf("Starting %lu threads to test %lu states\n", thread_count, total_states);
+    printf("Starting %zu threads to test %zu states\n", thread_count, total_states);
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
-    printf("Tested %lu states\n", total_states_tested);
+    printf("Tested %zu states\n", total_states_tested);
 
     craptev1_destroy_space(space);
     return 0;
