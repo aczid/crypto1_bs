@@ -26,7 +26,7 @@ void* crack_states_thread(void* x){
     for(j = thread_id; space[j * 5]; j += thread_count) {
         const uint64_t key = crack_states_bitsliced(space + j * 5);
         if(key != -1){
-            printf("Found key: %012lx\n", key);
+            printf("Found key: %012"llx"\n", key);
             __sync_fetch_and_add(&keys_found, 1);
             break;
         } else if(keys_found){
