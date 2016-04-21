@@ -1,8 +1,18 @@
+# if -march=native does not work on your platform, you could try
+# -msse
+# -msse2
+# -mavx
+# or
+# -mavx2
+
+CRYPTO1_BS_OPTIMIZATION_ARGS=-O3 -march=native -mpopcnt
+# popcount is used for fast (hardware) parity computation on non-bitsliced states
+
 all:
 	gcc -O3 craptev1-v1.0/solve.c -fPIC -shared -o solve.so
-	gcc -O3 -mpopcnt -mmmx -std=c99 solve_bs.c crypto1_bs.c crypto1_bs_crack.c -Icraptev1-v1.0 craptev1-v1.0/craptev1.c crapto1-v3.3/crapto1.c ./solve.so -o solve_bs -lpthread
-	gcc -O3 -mpopcnt -mmmx -std=c99 solve_piwi_bs.c crypto1_bs.c crypto1_bs_crack.c -Icraptev1-v1.0 craptev1-v1.0/craptev1.c crapto1-v3.3/crapto1.c -o solve_piwi_bs -lpthread
-	gcc -O3 -mpopcnt -mmmx solve_piwi.c -I craptev1-v1.0 craptev1-v1.0/craptev1.c -o solve_piwi -lpthread
+	gcc -std=c99 ${CRYPTO1_BS_OPTIMIZATION_ARGS} solve_bs.c crypto1_bs.c crypto1_bs_crack.c -Icraptev1-v1.0 craptev1-v1.0/craptev1.c crapto1-v3.3/crapto1.c ./solve.so -o solve_bs -lpthread
+	gcc -std=c99 ${CRYPTO1_BS_OPTIMIZATION_ARGS} solve_piwi_bs.c crypto1_bs.c crypto1_bs_crack.c -Icraptev1-v1.0 craptev1-v1.0/craptev1.c crapto1-v3.3/crapto1.c -o solve_piwi_bs -lpthread
+	gcc ${CRYPTO1_BS_OPTIMIZATION_ARGS} solve_piwi.c -I craptev1-v1.0 craptev1-v1.0/craptev1.c -o solve_piwi -lpthread
 
 clean:
 	rm solve.so solve_bs solve_piwi_bs solve_piwi
