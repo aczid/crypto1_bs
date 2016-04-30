@@ -16,7 +16,7 @@ all:
 	gcc -std=c99 ${CRYPTO1_BS_OPTIMIZATION_ARGS} -Icraptev1-v1.0 -Icrapto1-v3.3 libnfc_crypto1_crack.c crypto1_bs.c crypto1_bs_crack.c crapto1-v3.3/crypto1.c crapto1-v3.3/crapto1.c craptev1-v1.0/craptev1.c -o libnfc_crypto1_crack -lpthread -lnfc
 
 clean:
-	rm solve.so solve_bs solve_piwi_bs solve_piwi
+	rm -f solve.so solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
 
 get_craptev1:
 	wget http://crapto1.netgarage.org/craptev1-v1.0.tar.xz
