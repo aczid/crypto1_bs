@@ -312,7 +312,7 @@ int main (int argc, const char * argv[]) {
 
     size_t i;
 
-    printf("initializing BS crypto-1...\n");
+    printf(" - initializing BS crypto-1...\n");
     crypto1_bs_init();
     printf("Using %u-bit bitslices\n", MAX_BITSLICES);
 
