@@ -49,7 +49,7 @@ static nfc_context *context;
 uint64_t *nonces = NULL;
 size_t nonces_collected;
 
-void nested_auth(uint32_t uid, uint64_t known_key, uint8_t for_block, uint8_t target_block, uint8_t target_key, FILE* fp)
+void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_block, uint8_t target_block, uint8_t target_key, FILE* fp)
 {
     uint64_t *pcs;
 
@@ -68,31 +68,31 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t for_block, uint8_t ta
     int i;
 
     // Prepare AUTH command
-    Cmd[0] = target_key;
+    Cmd[0] = ab_key;
     Cmd[1] = for_block;
     iso14443a_crc_append(Cmd, 2);
 
     // We need full control over the CRC
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_CRC, false) < 0)  {
         nfc_perror(pnd, "nfc_device_set_property_bool crc");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Request plain tag-nonce
     // TODO: Set NP_EASY_FRAMING option only once if possible
     if (nfc_device_set_property_bool(pnd, NP_EASY_FRAMING, false) < 0) {
         nfc_perror(pnd, "nfc_device_set_property_bool framing");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     if (nfc_initiator_transceive_bytes(pnd, Cmd, 4, Rx, sizeof(Rx), 0) < 0) {
         fprintf(stdout, "Error while requesting plain tag-nonce\n");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     if (nfc_device_set_property_bool(pnd, NP_EASY_FRAMING, true) < 0) {
         nfc_perror(pnd, "nfc_device_set_property_bool");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Save the tag nonce (Nt)
@@ -126,14 +126,14 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t for_block, uint8_t ta
     // Finally we want to send arbitrary parity bits
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_PARITY, false) < 0) {
         nfc_perror(pnd, "nfc_device_set_property_bool parity");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Transmit reader-answer
     int res;
     if (((res = nfc_initiator_transceive_bits(pnd, ArEnc, 64, ArEncPar, Rx, sizeof(Rx), RxPar)) < 0) || (res != 32)) {
         printf("Reader-answer transfer error, exiting..");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Decrypt the tag answer and verify that suc3(Nt) is At
@@ -141,7 +141,7 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t for_block, uint8_t ta
 
     if (!((crypto1_word(pcs, 0x00, 0) ^ bytes_to_num(Rx, 4)) == (Nt & 0xFFFFFFFF))) {
         printf("[At] is not Suc3(Nt), something is wrong, exiting..");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     Cmd[0] = target_key;
@@ -154,7 +154,7 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t for_block, uint8_t ta
     }
     if (((res = nfc_initiator_transceive_bits(pnd, ArEnc, 32, ArEncPar, Rx, sizeof(Rx), RxPar)) < 0) || (res != 32)) {
         printf("Reader-answer transfer error, exiting..");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     if(fp){
@@ -255,22 +255,26 @@ int main (int argc, const char * argv[]) {
     }
 
     if(argc < 4){
-        printf("%s <known key> <A|B> <for block> <target block>\n", argv[0]);
+        printf("%s <known key> <for block> <A|B> <target block> <A|B>\n", argv[0]);
     }
 
     uint64_t known_key = strtoul(argv[1], 0, 16);
+    uint8_t for_block = atoi(argv[2]);
+    uint8_t ab_key = MC_AUTH_A;
+    if(argv[3][0] == 'b' || argv[3][0] == 'B'){
+       ab_key = MC_AUTH_B;
+    }
+    uint8_t target_block = atoi(argv[4]);
     uint8_t target_key = MC_AUTH_A;
-    if(argv[2][0] == 'b' || argv[2][0] == 'B'){
+    if(argv[5][0] == 'b' || argv[5][0] == 'B'){
        target_key = MC_AUTH_B;
     }
-    uint8_t for_block = atoi(argv[3]);
-    uint8_t target_block = atoi(argv[4]);
     
     char filename[20];
     sprintf(filename, "0x%04x_%03u.txt", uid, target_block);
-    FILE* fp = fopen(filename, "wb+");
+    FILE* fp = fopen(filename, "wb");
 
-    printf("Found tag with uid %04x, collecting nonces for key %s of block %u using known key %012"PRIx64" for block %u\n", uid, target_key == MC_AUTH_A ? "A" : "B", target_block, known_key, for_block);
+    printf("Found tag with uid %04x, collecting nonces for key %s of block %u using known key %s %012"PRIx64" for block %u\n", uid, target_key == MC_AUTH_A ? "A" : "B", target_block, ab_key == MC_AUTH_A ? "A" : "B", known_key, for_block);
     nonces_collected = 0;
     nonces = malloc(sizeof (uint64_t) <<  24);
     memset(nonces, 0xff, sizeof (uint64_t) <<  24);
@@ -283,7 +287,7 @@ int main (int argc, const char * argv[]) {
         nfc_device_set_property_bool(pnd,NP_HANDLE_PARITY,true);
         // Poll for a ISO14443A (MIFARE) tag
         if (nfc_initiator_select_passive_target(pnd,nmMifare,NULL,0,&target)) {
-            nested_auth(bytes_to_num(target.nti.nai.abtUid, 4), known_key, for_block, target_block, target_key, fp);
+            nested_auth(bytes_to_num(target.nti.nai.abtUid, 4), known_key, ab_key, for_block, target_block, target_key, fp);
         } else {
             printf("Don't move the tag!\n");
         }
