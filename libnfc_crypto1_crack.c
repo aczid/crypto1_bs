@@ -669,6 +669,7 @@ int main (int argc, const char * argv[]) {
     pthread_join(state_counting_thread, 0);
 
     fclose(fp);
+    nfc_close(pnd);
 
     if(!space){
         return 1;
