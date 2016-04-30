@@ -33,7 +33,7 @@ I have included a conversion of the test file `0xcafec0de.txt` included in the C
 
     $ ./solve_piwi_bs 0xcafec0de.bin
 
-`libnfc_crypto1_crack` uses libnfc to demonstrate the CraptEV1 attack using the bitsliced cracker
+`libnfc_crypto1_crack` uses libnfc to demonstrate the CraptEV1 code using the bitsliced cracker
 
     $ ./libnfc_crypto1_crack 000000000000 0 A 5 A
 
