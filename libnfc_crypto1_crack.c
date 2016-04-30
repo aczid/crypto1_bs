@@ -634,6 +634,7 @@ int main (int argc, const char * argv[]) {
 
     if(argc < 4){
         printf("%s <known key> <for block> <A|B> <target block> <A|B>\n", argv[0]);
+        return 1;
     }
 
     known_key = strtoul(argv[1], 0, 16);
