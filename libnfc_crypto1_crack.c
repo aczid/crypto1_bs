@@ -209,13 +209,14 @@ void have_enough_states(int sig){
     }
     if(!space){
         printf("\rCollected %zu nonces... ", nonces_collected);
+        alarm(1);
     } else {
         total_states = craptev1_sizeof_space(space);
         printf("\rCollected %zu nonces... leftover complexity %zu (press any key to start brute-force phase)", nonces_collected, total_states);
+        alarm(10);
     }
     fflush(stdout);
     signal(SIGALRM, have_enough_states);
-    alarm(1);
 }
 
 int main (int argc, const char * argv[]) {
