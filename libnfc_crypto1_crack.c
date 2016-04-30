@@ -1,3 +1,5 @@
+// Almost entirely based on code from Mifare Offline Cracker (MFOC) by Nethema, cheers guys! :)
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -92,7 +94,6 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t for_block, uint8_t ta
         nfc_perror(pnd, "nfc_device_set_property_bool");
         exit(EXIT_FAILURE);
     }
-    // print_hex(Rx, 4);
 
     // Save the tag nonce (Nt)
     Nt = bytes_to_num(Rx, 4);
@@ -267,8 +268,7 @@ int main (int argc, const char * argv[]) {
     
     char filename[20];
     sprintf(filename, "0x%04x_%03u.txt", uid, target_block);
-    /*FILE* fp = fopen(filename, "wb+");*/
-    FILE* fp = fopen(filename, "wb");
+    FILE* fp = fopen(filename, "wb+");
 
     printf("Found tag with uid %04x, collecting nonces for key %s of block %u using known key %012"PRIx64" for block %u\n", uid, target_key == MC_AUTH_A ? "A" : "B", target_block, known_key, for_block);
     nonces_collected = 0;
