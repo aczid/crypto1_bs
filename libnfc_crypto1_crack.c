@@ -209,12 +209,13 @@ void have_enough_states(int sig){
     }
     if(!space){
         printf("\rCollected %zu nonces... ", nonces_collected);
-        fflush(stdout);
-        signal(SIGALRM, have_enough_states);
-        alarm(1);
     } else {
-        alarm(0);
+        total_states = craptev1_sizeof_space(space);
+        printf("\rCollected %zu nonces... leftover complexity %zu (press any key to start brute-force phase)", nonces_collected, total_states);
     }
+    fflush(stdout);
+    signal(SIGALRM, have_enough_states);
+    alarm(1);
 }
 
 int main (int argc, const char * argv[]) {
@@ -247,11 +248,9 @@ int main (int argc, const char * argv[]) {
         uid = bytes_to_num(target.nti.nai.abtUid,target.nti.nai.szUidLen);
     }
 
-    thread_count = get_nprocs_conf();
-    pthread_t threads[thread_count];
-
     if(!uid){
-        goto DISCONNECT;
+        // Disconnect from NFC device
+        nfc_close(pnd);
     }
 
     if(argc < 4){
@@ -281,6 +280,8 @@ int main (int argc, const char * argv[]) {
     signal(SIGALRM, have_enough_states);
     alarm(1);
 
+    fcntl(0, F_SETFL, O_NONBLOCK);
+
     while(true){
         // Configure the CRC and Parity settings
         nfc_device_set_property_bool(pnd,NP_HANDLE_CRC,true);
@@ -292,11 +293,22 @@ int main (int argc, const char * argv[]) {
             printf("Don't move the tag!\n");
         }
         if(space){
-            break;
+            char c;
+            if(read(0, &c, 1) == 1 || total_states < 0x1000000000){
+                alarm(0);
+                break;
+            }
         }
     }
+
     fclose(fp);
-    total_states = craptev1_sizeof_space(space);
+
+    if(!space){
+        return 1;
+    }
+
+    thread_count = get_nprocs_conf();
+    pthread_t threads[thread_count];
 
     size_t i;
 
@@ -333,9 +345,5 @@ int main (int argc, const char * argv[]) {
     printf("Tested %zu states\n", total_states_tested);
 
     craptev1_destroy_space(space);
-
-DISCONNECT:
-    // Disconnect from NFC device
-    nfc_close(pnd);
     return 0;
 }
