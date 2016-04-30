@@ -473,7 +473,7 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_b
     // Transmit reader-answer
     int res;
     if (((res = nfc_initiator_transceive_bits(pnd, ArEnc, 64, ArEncPar, Rx, sizeof(Rx), RxPar)) < 0) || (res != 32)) {
-        printf("Reader-answer transfer error, exiting..");
+        fprintf(stderr, "Reader-answer transfer error, exiting..");
         return;
     }
 
@@ -481,7 +481,7 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_b
     Nt = prng_successor(Nt, 32);
 
     if (!((crypto1_word(pcs, 0x00, 0) ^ bytes_to_num(Rx, 4)) == (Nt & 0xFFFFFFFF))) {
-        printf("[At] is not Suc3(Nt), something is wrong, exiting..");
+        fprintf(stderr, "[At] is not Suc3(Nt), something is wrong, exiting..");
         return;
     }
 
@@ -494,7 +494,7 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_b
         ArEncPar[i] = filter(*pcs) ^ oddparity(Cmd[i]);
     }
     if (((res = nfc_initiator_transceive_bits(pnd, ArEnc, 32, ArEncPar, Rx, sizeof(Rx), RxPar)) < 0) || (res != 32)) {
-        printf("Reader-answer transfer error, exiting..");
+        fprintf(stderr, "Reader-answer transfer error, exiting..");
         return;
     }
 
@@ -608,7 +608,7 @@ int main (int argc, const char * argv[]) {
     pnd = nfc_open(context, NULL);
 
     if (pnd == NULL) {
-        printf("No NFC device connection\n");
+        fprintf(stderr, "No NFC device connection\n");
         return 1;
     }
 
@@ -674,7 +674,8 @@ int main (int argc, const char * argv[]) {
 
     space = craptev1_get_space(nonces, 95, uid);
     total_states = craptev1_sizeof_space(space);
-    if(!space){
+    if(!space || !total_states_tested){
+        fprintf(stderr, "No solution found!\n");
         return 1;
     }
 
