@@ -43,7 +43,7 @@ Special thanks to Carlo Meijer, Roel Verdult, piwi and bla.
 License
 -------
 
-All the code in this repository is made available under the MIT license, except for the file `pwpiwi_proxmark3_hard_nested.patch`, which is inherently GPLv2 due to the Proxmark3 project's license.
+All the code in this repository is made available under the MIT license, except for the files `pwpiwi_proxmark3_hard_nested.patch` and `libnfc_crypto1_crack.c`, which are GPLv2 due to deriving from respectively Proxmark3 and MFOC.
 
 Copyright (c) 2015-2016 Aram Verstegen
 
