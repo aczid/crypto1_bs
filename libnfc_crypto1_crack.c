@@ -544,18 +544,60 @@ void* crack_states_thread(void* x){
     return NULL;
 }
 
-void have_enough_states(int sig){
-    if(nonces && uid){
-        space = craptev1_get_space(nonces, 95, uid);
+bool stop_collection = false;
+
+void * update_total_states_thread(void* p){
+    while(!stop_collection){
+        if(nonces && uid){
+            space = craptev1_get_space(nonces, 95, uid);
+        }
+        if(space){
+            total_states = craptev1_sizeof_space(space);
+        }
     }
+}
+
+uint64_t known_key;
+uint8_t for_block;
+uint8_t ab_key;
+uint8_t target_block;
+uint8_t target_key;
+FILE* fp;
+
+const nfc_modulation nmMifare = {
+    .nmt = NMT_ISO14443A,
+    .nbr = NBR_106,
+};
+
+void * update_nonces_thread(void* v){
+    while(true){
+        // Configure the CRC and Parity settings
+        nfc_device_set_property_bool(pnd,NP_HANDLE_CRC,true);
+        nfc_device_set_property_bool(pnd,NP_HANDLE_PARITY,true);
+        // Poll for a ISO14443A (MIFARE) tag
+        if (nfc_initiator_select_passive_target(pnd,nmMifare,NULL,0,&target)) {
+            nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, fp);
+        } else {
+            printf("Don't move the tag!\n");
+        }
+        if(total_states){
+            char c;
+            if(read(0, &c, 1) == 1 || total_states < 0x1000000000){
+                alarm(0);
+                stop_collection = true;
+                break;
+            }
+        }
+    }
+}
+
+void have_enough_states(int sig){
     if(!space){
         printf("\rCollected %zu nonces... ", nonces_collected);
-        alarm(1);
     } else {
-        total_states = craptev1_sizeof_space(space);
         printf("\rCollected %zu nonces... leftover complexity %zu (press any key to start brute-force phase)", nonces_collected, total_states);
-        alarm(10);
     }
+    alarm(1);
     fflush(stdout);
     signal(SIGALRM, have_enough_states);
 }
@@ -577,11 +619,6 @@ int main (int argc, const char * argv[]) {
     nfc_device_set_property_bool(pnd,NP_HANDLE_CRC,true);
     nfc_device_set_property_bool(pnd,NP_HANDLE_PARITY,true);
 
-    const nfc_modulation nmMifare = {
-        .nmt = NMT_ISO14443A,
-        .nbr = NBR_106,
-    };
-
     uid = 0;
 
     // Enable field so more power consuming cards can power themselves up
@@ -599,21 +636,21 @@ int main (int argc, const char * argv[]) {
         printf("%s <known key> <for block> <A|B> <target block> <A|B>\n", argv[0]);
     }
 
-    uint64_t known_key = strtoul(argv[1], 0, 16);
-    uint8_t for_block = atoi(argv[2]);
-    uint8_t ab_key = MC_AUTH_A;
+    known_key = strtoul(argv[1], 0, 16);
+    for_block = atoi(argv[2]);
+    ab_key = MC_AUTH_A;
     if(argv[3][0] == 'b' || argv[3][0] == 'B'){
        ab_key = MC_AUTH_B;
     }
-    uint8_t target_block = atoi(argv[4]);
-    uint8_t target_key = MC_AUTH_A;
+    target_block = atoi(argv[4]);
+    target_key = MC_AUTH_A;
     if(argv[5][0] == 'b' || argv[5][0] == 'B'){
        target_key = MC_AUTH_B;
     }
     
     char filename[20];
     sprintf(filename, "0x%04x_%03u.txt", uid, target_block);
-    FILE* fp = fopen(filename, "wb");
+    fp = fopen(filename, "wb");
 
     printf("Found tag with uid %04x, collecting nonces for key %s of block %u using known key %s %012"PRIx64" for block %u\n", uid, target_key == MC_AUTH_A ? "A" : "B", target_block, ab_key == MC_AUTH_A ? "A" : "B", known_key, for_block);
     nonces_collected = 0;
@@ -624,24 +661,11 @@ int main (int argc, const char * argv[]) {
 
     fcntl(0, F_SETFL, O_NONBLOCK);
 
-    while(true){
-        // Configure the CRC and Parity settings
-        nfc_device_set_property_bool(pnd,NP_HANDLE_CRC,true);
-        nfc_device_set_property_bool(pnd,NP_HANDLE_PARITY,true);
-        // Poll for a ISO14443A (MIFARE) tag
-        if (nfc_initiator_select_passive_target(pnd,nmMifare,NULL,0,&target)) {
-            nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, fp);
-        } else {
-            printf("Don't move the tag!\n");
-        }
-        if(space){
-            char c;
-            if(read(0, &c, 1) == 1 || total_states < 0x1000000000){
-                alarm(0);
-                break;
-            }
-        }
-    }
+    pthread_t state_counting_thread, nonce_gathering_thread;
+    pthread_create(&nonce_gathering_thread, NULL, update_nonces_thread, NULL);
+    pthread_create(&state_counting_thread, NULL, update_total_states_thread, NULL);
+    pthread_join(nonce_gathering_thread, 0);
+    pthread_join(state_counting_thread, 0);
 
     fclose(fp);
 
