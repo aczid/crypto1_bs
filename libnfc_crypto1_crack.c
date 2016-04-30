@@ -579,7 +579,8 @@ void * update_nonces_thread(void* v){
         if (nfc_initiator_select_passive_target(pnd,nmMifare,NULL,0,&target)) {
             nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, fp);
         } else {
-            printf("Don't move the tag!\n");
+            printf("\rDon't move the tag!");
+            fflush(stdout);
         }
         if(total_states){
             char c;
@@ -629,8 +630,10 @@ int main (int argc, const char * argv[]) {
     }
 
     if(!uid){
+        fprintf(stderr, "No tag detected!\n");
         // Disconnect from NFC device
         nfc_close(pnd);
+        return 1;
     }
 
     if(argc < 4){
@@ -673,8 +676,10 @@ int main (int argc, const char * argv[]) {
     nfc_close(pnd);
 
     space = craptev1_get_space(nonces, 95, uid);
-    total_states = craptev1_sizeof_space(space);
-    if(!space || !total_states){
+    if(space){
+        total_states = craptev1_sizeof_space(space);
+    }
+    if(!total_states){
         fprintf(stderr, "No solution found!\n");
         return 1;
     }
