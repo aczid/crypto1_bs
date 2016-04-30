@@ -553,6 +553,7 @@ void * update_total_states_thread(void* p){
         }
         if(space){
             total_states = craptev1_sizeof_space(space);
+            craptev1_destroy_space(space);
         }
     }
 }
@@ -671,6 +672,8 @@ int main (int argc, const char * argv[]) {
     fclose(fp);
     nfc_close(pnd);
 
+    space = craptev1_get_space(nonces, 95, uid);
+    total_states = craptev1_sizeof_space(space);
     if(!space){
         return 1;
     }
