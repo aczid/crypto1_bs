@@ -674,7 +674,7 @@ int main (int argc, const char * argv[]) {
 
     space = craptev1_get_space(nonces, 95, uid);
     total_states = craptev1_sizeof_space(space);
-    if(!space || !total_states_tested){
+    if(!space || !total_states){
         fprintf(stderr, "No solution found!\n");
         return 1;
     }
