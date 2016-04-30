@@ -630,7 +630,7 @@ int main (int argc, const char * argv[]) {
         nfc_device_set_property_bool(pnd,NP_HANDLE_PARITY,true);
         // Poll for a ISO14443A (MIFARE) tag
         if (nfc_initiator_select_passive_target(pnd,nmMifare,NULL,0,&target)) {
-            nested_auth(bytes_to_num(target.nti.nai.abtUid, 4), known_key, ab_key, for_block, target_block, target_key, fp);
+            nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, fp);
         } else {
             printf("Don't move the tag!\n");
         }
