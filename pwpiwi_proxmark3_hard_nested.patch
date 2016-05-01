@@ -608,8 +608,8 @@ index b3893ea..bf71a08 100644
 +        }
 +
 +        // enumerate states using all hardware threads, each thread handles one bucket
-+        PrintAndLog("Starting %u cracking threads to search %u buckets containing a total of %lu states...", thread_count, bucket_count, maximum_states);
 +        thread_count = sysconf(_SC_NPROCESSORS_CONF);
++        PrintAndLog("Starting %u cracking threads to search %u buckets containing a total of %lu states...", thread_count, bucket_count, maximum_states);
 +        pthread_t threads[thread_count];
 +        for(size_t i = 0; i < thread_count; i++){
 +            pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
