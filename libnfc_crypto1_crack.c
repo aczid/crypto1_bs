@@ -1,4 +1,4 @@
-// Almost entirely based on code from Mifare Offline Cracker (MFOC) by Nethema, cheers guys! :)
+// Almost entirely based on code from Mifare Offline Cracker (MFOC) by Nethemba, cheers guys! :)
 /*
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
