@@ -498,6 +498,7 @@ void * update_total_states_thread(void* p){
             craptev1_destroy_space(space);
         }
     }
+    return NULL;
 }
 
 uint64_t known_key;
@@ -533,6 +534,7 @@ void * update_nonces_thread(void* v){
             }
         }
     }
+    return NULL;
 }
 
 void have_enough_states(int sig){
