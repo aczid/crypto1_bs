@@ -638,6 +638,7 @@ int main (int argc, const char * argv[]) {
 
     if(argc < 4){
         printf("%s <known key> <for block> <A|B> <target block> <A|B>\n", argv[0]);
+        nfc_close(pnd);
         return 1;
     }
 
