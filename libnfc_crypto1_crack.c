@@ -586,7 +586,7 @@ int main (int argc, const char * argv[]) {
         return 1;
     }
 
-    known_key = strtoul(argv[1], 0, 16);
+    known_key = strtoull(argv[1], 0, 16);
     for_block = atoi(argv[2]);
     ab_key = MC_AUTH_A;
     if(argv[3][0] == 'b' || argv[3][0] == 'B'){
