@@ -656,14 +656,11 @@ int main (int argc, const char * argv[]) {
     size_t i;
 
     crypto1_bs_init();
-    printf("Using %u-bit bitslices\n", MAX_BITSLICES);
 
     uint8_t rollback_byte = **space;
-    printf("Bitslicing rollback byte: %02x...\n", rollback_byte);
     // convert to 32 bit little-endian
     crypto1_bs_bitslice_value32(rev32((rollback_byte)), bitsliced_rollback_byte, 8);
 
-    printf("Bitslicing nonces...\n");
     for(size_t tests = 0; tests < NONCE_TESTS; tests++){
         // pre-xor the uid into the decrypted nonces, and also pre-xor the uid parity into the encrypted parity bits - otherwise an exta xor is required in the decryption routine
         uint32_t test_nonce = uid^rev32(nonces[tests]);
@@ -679,7 +676,7 @@ int main (int argc, const char * argv[]) {
     signal(SIGALRM, notify_status_offline);
     alarm(1);
 
-    printf("Starting %zu threads to test %zu states\n", thread_count, total_states);
+    printf("Starting %zu threads to test %zu states using %u-way bitslicing\n", thread_count, total_states, MAX_BITSLICES);
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
