@@ -532,7 +532,7 @@ void notify_status_online(int sig){
             stop_collection = true;
             return;
         } else {
-            printf(" - press enter to start brute-force phase\n");
+            printf(" - press enter to start brute-force phase");
         }
     }
     alarm(1);
