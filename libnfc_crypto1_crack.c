@@ -290,6 +290,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <fcntl.h>
 #include <sys/sysinfo.h>
 #include <nfc/nfc.h>
+#include <math.h>
 
 #include "crypto1_bs_crack.h"
 
@@ -518,7 +519,7 @@ void notify_status_online(int sig){
     if(!space){
         printf("\rCollected %zu nonces... ", nonces_collected);
     } else {
-        printf("\rCollected %zu nonces... leftover complexity %zu (press enter to start brute-force phase)", nonces_collected, total_states);
+        printf("\rCollected %zu nonces... leftover complexity %zu (~2^%0.2f) (press enter to start brute-force phase)", nonces_collected, total_states, log(total_states) / log(2));
     }
     if(total_states){
         char c;
