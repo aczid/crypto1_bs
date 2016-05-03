@@ -652,7 +652,9 @@ int main (int argc, const char * argv[]) {
     pthread_join(prediction_thread, 0);
     alarm(0);
 
-    fclose(fp);
+    if(fp){
+        fclose(fp);
+    }
     nfc_close(pnd);
 
     if(!space){
