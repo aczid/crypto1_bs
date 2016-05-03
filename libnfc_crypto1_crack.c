@@ -292,6 +292,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <nfc/nfc.h>
 #include <math.h>
 
+#define ONLINE_COUNT
 #include "crypto1_bs_crack.h"
 
 extern uint64_t * crypto1_create(uint64_t key);

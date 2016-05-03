@@ -123,6 +123,13 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
 
 #ifdef EXACT_COUNT
             bucket_states_tested += bucket_size[block_idx];
+#ifdef ONLINE_COUNT
+            __sync_fetch_and_add(&total_states_tested, bucket_size[block_idx]);
+#endif
+#else
+#ifdef ONLINE_COUNT
+            __sync_fetch_and_add(&total_states_tested, MAX_BITSLICES);
+#endif
 #endif
             // pre-compute first keystream and feedback bit vectors
             const bitslice_value_t ksb = crypto1_bs_f20(state_p);
@@ -215,6 +222,8 @@ out:
     for(size_t block_idx = 0; block_idx < bitsliced_blocks; ++block_idx){
         free(bitsliced_even_states[block_idx]-ROLLBACK_SIZE);
     }
+#ifndef ONLINE_COUNT
     __sync_fetch_and_add(&total_states_tested, bucket_states_tested);
+#endif
     return key;
 }
