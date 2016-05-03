@@ -338,6 +338,8 @@ enum {
     KEY_WRONG,
 };
 
+#define VT100_cleareol "\r\33[2K"
+
 // Almost entirely based on code from Mifare Offline Cracker (MFOC) by Nethemba, cheers guys! :)
 int nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_block, uint8_t target_block, uint8_t target_key, FILE* fp)
 {
@@ -509,7 +511,7 @@ void * update_predictions_thread(void* p){
 }
 
 void notify_status_offline(int sig){
-    printf("\rCracking... %6.02f%%", (100.0*total_states_tested/(total_states)));
+    printf(VT100_cleareol "Cracking... %6.02f%%", (100.0*total_states_tested/(total_states)));
     alarm(1);
     fflush(stdout);
     signal(SIGALRM, notify_status_offline);
@@ -517,9 +519,9 @@ void notify_status_offline(int sig){
 
 void notify_status_online(int sig){
     if(!space){
-        printf("\rCollected %zu nonces... ", nonces_collected);
+        printf(VT100_cleareol "Collected %zu nonces... ", nonces_collected);
     } else {
-        printf("\rCollected %zu nonces... leftover complexity %zu (~2^%0.2f) (press enter to start brute-force phase)", nonces_collected, total_states, log(total_states) / log(2));
+        printf(VT100_cleareol "Collected %zu nonces... leftover complexity %zu (~2^%0.2f) (press enter to start brute-force phase)", nonces_collected, total_states, log(total_states) / log(2));
     }
     if(total_states){
         char c;
@@ -556,7 +558,7 @@ void * update_nonces_thread(void* v){
         if (nfc_initiator_select_passive_target(pnd,nmMifare,NULL,0,&target)) {
             nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, fp);
         } else {
-            printf("\rDon't move the tag!");
+            printf(VT100_cleareol "Don't move the tag!");
             fflush(stdout);
         }
     }
@@ -684,13 +686,14 @@ int main (int argc, const char * argv[]) {
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
-    printf("Tested %zu states\n", total_states_tested);
+    printf("\n");
     if(!keys_found){
         fprintf(stderr, "No solution found :(\n");
         return 1;
     } else {
         printf("Found key: %012"PRIx64"\n", found_key);
     }
+    printf("Tested %zu states\n", total_states_tested);
 
     craptev1_destroy_space(space);
     alarm(0);
