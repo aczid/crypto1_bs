@@ -615,9 +615,16 @@ int main (int argc, const char * argv[]) {
     if(argv[5][0] == 'b' || argv[5][0] == 'B'){
        target_key = MC_AUTH_B;
     }
-    if(nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, NULL) == KEY_WRONG){
-        printf("This doesn't look like the right key.\n");
-        return 1;
+    switch(nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, NULL)){
+        case KEY_WRONG:
+            printf("This doesn't look like the right key.\n");
+            return 1;
+        case OK:
+            break;
+        case ERROR:
+        default:
+            printf("Some other error occurred.\n");
+            break;
     }
     
     char filename[21];
