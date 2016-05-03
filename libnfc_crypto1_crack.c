@@ -671,12 +671,13 @@ int main (int argc, const char * argv[]) {
         crypto1_bs_bitslice_value32(~(test_parity)<<24, bitsliced_encrypted_parity_bits[tests], 4);
     }
 
+    printf("Starting %zu threads to test %zu states using %u-way bitslicing\n", thread_count, total_states, MAX_BITSLICES);
     total_states_tested = 0;
     keys_found = 0;
     signal(SIGALRM, notify_status_offline);
-    alarm(1);
 
-    printf("Starting %zu threads to test %zu states using %u-way bitslicing\n", thread_count, total_states, MAX_BITSLICES);
+    notify_status_offline(0);
+    alarm(1);
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
