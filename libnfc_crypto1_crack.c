@@ -623,7 +623,7 @@ int main (int argc, const char * argv[]) {
     }
     switch(nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, NULL)){
         case KEY_WRONG:
-            printf("This doesn't look like the right key.\n");
+            printf("%012"PRIx64" doesn't look like the right key %s for block %u\n", known_key, ab_key == MC_AUTH_A ? "A" : "B", for_block);
             return 1;
         case OK:
             break;
