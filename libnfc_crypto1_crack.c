@@ -522,7 +522,7 @@ void notify_status_online(int sig){
     if(!space){
         printf(VT100_cleareol "Collected %zu nonces... ", nonces_collected);
     } else {
-        printf(VT100_cleareol "Collected %zu nonces... leftover complexity %zu (~2^%0.2f) (press enter to start brute-force phase)", nonces_collected, total_states, log(total_states) / log(2));
+        printf(VT100_cleareol "Collected %zu nonces... leftover complexity %zu (~2^%0.2f)", nonces_collected, total_states, log(total_states) / log(2));
     }
     if(total_states){
         char c;
@@ -531,6 +531,8 @@ void notify_status_online(int sig){
             alarm(0);
             stop_collection = true;
             return;
+        } else {
+            printf(" - press enter to start brute-force phase\n");
         }
     }
     alarm(1);
