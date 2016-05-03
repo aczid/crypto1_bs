@@ -497,6 +497,7 @@ void* crack_states_thread(void* x){
 }
 
 bool stop_collection = false;
+#define CUTOFF ((uint64_t) 1<<37)
 
 void * update_predictions_thread(void* p){
     while(!stop_collection){
@@ -505,7 +506,10 @@ void * update_predictions_thread(void* p){
         }
         if(space){
             total_states = craptev1_sizeof_space(space);
-            craptev1_destroy_space(space);
+            if(total_states > CUTOFF){
+                craptev1_destroy_space(space);
+                space = NULL;
+            }
         }
     }
     return NULL;
@@ -526,7 +530,7 @@ void notify_status_online(int sig){
     }
     if(total_states){
         char c;
-        if(scanf("%c", &c) == 1 || total_states < 0x1000000000){
+        if(scanf("%c", &c) == 1 || total_states < CUTOFF){
             printf(" - initializing brute-force phase...\n");
             alarm(0);
             stop_collection = true;
@@ -651,7 +655,9 @@ int main (int argc, const char * argv[]) {
     fclose(fp);
     nfc_close(pnd);
 
-    space = craptev1_get_space(nonces, 95, uid);
+    if(!space){
+        space = craptev1_get_space(nonces, 95, uid);
+    }
     if(space){
         total_states = craptev1_sizeof_space(space);
     }
