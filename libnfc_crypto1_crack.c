@@ -288,7 +288,9 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <signal.h>
 #include <pthread.h>
 #include <fcntl.h>
+#ifndef __WIN32
 #include <sys/sysinfo.h>
+#endif
 #include <nfc/nfc.h>
 #include <math.h>
 
@@ -523,12 +525,10 @@ void notify_status_offline(int sig){
 }
 
 void notify_status_online(int sig){
-    if(!space){
+    if(!total_states){
         printf(VT100_cleareol "Collected %zu nonces... ", nonces_collected);
     } else {
         printf(VT100_cleareol "Collected %zu nonces... leftover complexity %zu (~2^%0.2f)", nonces_collected, total_states, log(total_states) / log(2));
-    }
-    if(total_states){
         char c;
         if(scanf("%c", &c) == 1 || total_states < CUTOFF){
             printf(" - initializing brute-force phase...\n");
