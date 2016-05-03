@@ -1,4 +1,3 @@
-// Almost entirely based on code from Mifare Offline Cracker (MFOC) by Nethemba, cheers guys! :)
 // Copyright (C) 2016 Aram Verstegen
 /*
 		    GNU GENERAL PUBLIC LICENSE
@@ -332,7 +331,14 @@ static nfc_context *context;
 uint64_t *nonces = NULL;
 size_t nonces_collected;
 
-void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_block, uint8_t target_block, uint8_t target_key, FILE* fp)
+enum {
+    OK,
+    ERROR,
+    KEY_WRONG,
+};
+
+// Almost entirely based on code from Mifare Offline Cracker (MFOC) by Nethemba, cheers guys! :)
+int nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_block, uint8_t target_block, uint8_t target_key, FILE* fp)
 {
     uint64_t *pcs;
 
@@ -358,24 +364,24 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_b
     // We need full control over the CRC
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_CRC, false) < 0)  {
         nfc_perror(pnd, "nfc_device_set_property_bool crc");
-        return;
+        return ERROR;
     }
 
     // Request plain tag-nonce
     // TODO: Set NP_EASY_FRAMING option only once if possible
     if (nfc_device_set_property_bool(pnd, NP_EASY_FRAMING, false) < 0) {
         nfc_perror(pnd, "nfc_device_set_property_bool framing");
-        return;
+        return ERROR;
     }
 
     if (nfc_initiator_transceive_bytes(pnd, Cmd, 4, Rx, sizeof(Rx), 0) < 0) {
-        fprintf(stdout, "Error while requesting plain tag-nonce\n");
-        return;
+        fprintf(stdout, "Error while requesting plain tag-nonce ");
+        return ERROR;
     }
 
     if (nfc_device_set_property_bool(pnd, NP_EASY_FRAMING, true) < 0) {
         nfc_perror(pnd, "nfc_device_set_property_bool");
-        return;
+        return ERROR;
     }
 
     // Save the tag nonce (Nt)
@@ -408,23 +414,23 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_b
 
     // Finally we want to send arbitrary parity bits
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_PARITY, false) < 0) {
-        nfc_perror(pnd, "nfc_device_set_property_bool parity");
-        return;
+        nfc_perror(pnd, "nfc_device_set_property_bool parity ");
+        return 1;
     }
 
     // Transmit reader-answer
     int res;
     if (((res = nfc_initiator_transceive_bits(pnd, ArEnc, 64, ArEncPar, Rx, sizeof(Rx), RxPar)) < 0) || (res != 32)) {
-        fprintf(stderr, "Reader-answer transfer error, exiting..");
-        return;
+        fprintf(stderr, "Reader-answer transfer error, exiting.. ");
+        return KEY_WRONG;
     }
 
     // Decrypt the tag answer and verify that suc3(Nt) is At
     Nt = prng_successor(Nt, 32);
 
     if (!((crypto1_word(pcs, 0x00, 0) ^ bytes_to_num(Rx, 4)) == (Nt & 0xFFFFFFFF))) {
-        fprintf(stderr, "[At] is not Suc3(Nt), something is wrong, exiting..");
-        return;
+        fprintf(stderr, "[At] is not Suc3(Nt), something is wrong, exiting.. ");
+        return ERROR;
     }
 
     Cmd[0] = target_key;
@@ -436,8 +442,8 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_b
         ArEncPar[i] = filter(*pcs) ^ oddparity(Cmd[i]);
     }
     if (((res = nfc_initiator_transceive_bits(pnd, ArEnc, 32, ArEncPar, Rx, sizeof(Rx), RxPar)) < 0) || (res != 32)) {
-        fprintf(stderr, "Reader-answer transfer error, exiting..");
-        return;
+        fprintf(stderr, "Reader-answer transfer error, exiting.. ");
+        return ERROR;
     }
 
     if(fp){
@@ -462,10 +468,12 @@ void nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_b
     }
 
     crypto1_destroy(pcs);
+    return OK;
 }
 
 uint32_t uid;
 uint32_t **space;
+uint64_t found_key;
 size_t thread_count;
 size_t total_states;
 void* crack_states_thread(void* x){
@@ -474,13 +482,11 @@ void* crack_states_thread(void* x){
     for(j = thread_id; space[j * 5]; j += thread_count) {
         const uint64_t key = crack_states_bitsliced(space + j * 5);
         if(key != -1){
-            printf("Found key: %012"PRIx64"\n", key);
+            found_key = key;
             __sync_fetch_and_add(&keys_found, 1);
             break;
         } else if(keys_found){
             break;
-        } else {
-            printf("Cracking... %6.02f%%\n", (100.0*total_states_tested/(total_states)));
         }
     }
     return NULL;
@@ -488,7 +494,7 @@ void* crack_states_thread(void* x){
 
 bool stop_collection = false;
 
-void * update_total_states_thread(void* p){
+void * update_predictions_thread(void* p){
     while(!stop_collection){
         if(nonces && uid){
             space = craptev1_get_space(nonces, 95, uid);
@@ -499,6 +505,33 @@ void * update_total_states_thread(void* p){
         }
     }
     return NULL;
+}
+
+void notify_status_offline(int sig){
+    printf("\rCracking... %6.02f%%", (100.0*total_states_tested/(total_states)));
+    alarm(1);
+    fflush(stdout);
+    signal(SIGALRM, notify_status_offline);
+}
+
+void notify_status_online(int sig){
+    if(!space){
+        printf("\rCollected %zu nonces... ", nonces_collected);
+    } else {
+        printf("\rCollected %zu nonces... leftover complexity %zu (press enter to start brute-force phase)", nonces_collected, total_states);
+    }
+    if(total_states){
+        char c;
+        if(scanf("%c", &c) == 1 || total_states < 0x1000000000){
+            printf(" - initializing brute-force phase...\n");
+            alarm(0);
+            stop_collection = true;
+            return;
+        }
+    }
+    alarm(1);
+    fflush(stdout);
+    signal(SIGALRM, notify_status_online);
 }
 
 uint64_t known_key;
@@ -514,7 +547,7 @@ const nfc_modulation nmMifare = {
 };
 
 void * update_nonces_thread(void* v){
-    while(true){
+    while(!stop_collection){
         // Configure the CRC and Parity settings
         nfc_device_set_property_bool(pnd,NP_HANDLE_CRC,true);
         nfc_device_set_property_bool(pnd,NP_HANDLE_PARITY,true);
@@ -525,27 +558,8 @@ void * update_nonces_thread(void* v){
             printf("\rDon't move the tag!");
             fflush(stdout);
         }
-        if(total_states){
-            char c;
-            if(read(0, &c, 1) == 1 || total_states < 0x1000000000){
-                alarm(0);
-                stop_collection = true;
-                break;
-            }
-        }
     }
     return NULL;
-}
-
-void have_enough_states(int sig){
-    if(!space){
-        printf("\rCollected %zu nonces... ", nonces_collected);
-    } else {
-        printf("\rCollected %zu nonces... leftover complexity %zu (press any key to start brute-force phase)", nonces_collected, total_states);
-    }
-    alarm(1);
-    fflush(stdout);
-    signal(SIGALRM, have_enough_states);
 }
 
 int main (int argc, const char * argv[]) {
@@ -597,6 +611,10 @@ int main (int argc, const char * argv[]) {
     if(argv[5][0] == 'b' || argv[5][0] == 'B'){
        target_key = MC_AUTH_B;
     }
+    if(nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, NULL) == KEY_WRONG){
+        printf("This doesn't look like the right key.\n");
+        return 1;
+    }
     
     char filename[21];
     sprintf(filename, "0x%04x_%03u%s.txt", uid, target_block, ab_key == MC_AUTH_A ? "A" : "B");
@@ -606,16 +624,16 @@ int main (int argc, const char * argv[]) {
     nonces_collected = 0;
     nonces = malloc(sizeof (uint64_t) <<  24);
     memset(nonces, 0xff, sizeof (uint64_t) <<  24);
-    signal(SIGALRM, have_enough_states);
-    alarm(1);
 
     fcntl(0, F_SETFL, O_NONBLOCK);
-
-    pthread_t state_counting_thread, nonce_gathering_thread;
+    signal(SIGALRM, notify_status_online);
+    alarm(1);
+    pthread_t prediction_thread, nonce_gathering_thread;
     pthread_create(&nonce_gathering_thread, NULL, update_nonces_thread, NULL);
-    pthread_create(&state_counting_thread, NULL, update_total_states_thread, NULL);
+    pthread_create(&prediction_thread, NULL, update_predictions_thread, NULL);
     pthread_join(nonce_gathering_thread, 0);
-    pthread_join(state_counting_thread, 0);
+    pthread_join(prediction_thread, 0);
+    alarm(0);
 
     fclose(fp);
     nfc_close(pnd);
@@ -625,7 +643,7 @@ int main (int argc, const char * argv[]) {
         total_states = craptev1_sizeof_space(space);
     }
     if(!total_states){
-        fprintf(stderr, "No solution found!\n");
+        fprintf(stderr, "No solution found :(\n");
         return 1;
     }
 
@@ -634,7 +652,6 @@ int main (int argc, const char * argv[]) {
 
     size_t i;
 
-    printf(" - initializing BS crypto-1...\n");
     crypto1_bs_init();
     printf("Using %u-bit bitslices\n", MAX_BITSLICES);
 
@@ -656,6 +673,8 @@ int main (int argc, const char * argv[]) {
 
     total_states_tested = 0;
     keys_found = 0;
+    signal(SIGALRM, notify_status_offline);
+    alarm(1);
 
     printf("Starting %zu threads to test %zu states\n", thread_count, total_states);
     for(i = 0; i < thread_count; i++){
@@ -665,7 +684,14 @@ int main (int argc, const char * argv[]) {
         pthread_join(threads[i], 0);
     }
     printf("Tested %zu states\n", total_states_tested);
+    if(!keys_found){
+        fprintf(stderr, "No solution found :(\n");
+        return 1;
+    } else {
+        printf("Found key: %012"PRIx64"\n", found_key);
+    }
 
     craptev1_destroy_space(space);
+    alarm(0);
     return 0;
 }
