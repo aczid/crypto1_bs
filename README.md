@@ -17,6 +17,8 @@ This also allowed me to compare my Crypto-1 implementation to a finished brute-f
 Tools
 -----
 
+The following tools are only available for / tested on 64-bit Linux.
+
 If you want to use the following stand-alone binaries, you will need the original CraptEV1 / Crapto1 source packages.
 For convenience, and because redistribution of CraptEV1 is not allowed, I've added make targets `get_craptev1` and `get_crapto1` to fetch and extract these packages to the current working directory.
 I have included a conversion of the test file `0xcafec0de.txt` included in the CraptEV1 package to the binary format used by the `proxmark3/hard_nested` branch.
