@@ -11,6 +11,7 @@ size_t total_states;
 // linked from crapto1.c file
 extern uint8_t lfsr_rollback_byte(uint64_t* s, uint32_t in, int fb);
 
+#define ONLINE_COUNT
 #define EXACT_COUNT
 
 // arrays of bitsliced states with identical values in all slices
