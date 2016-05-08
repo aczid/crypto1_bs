@@ -503,14 +503,14 @@ bool stop_collection = false;
 void * update_predictions_thread(void* p){
     while(!stop_collection){
         if(nonces && uid){
+            if(space){
+                craptev1_destroy_space(space);
+                space = NULL;
+            }
             space = craptev1_get_space(nonces, 95, uid);
         }
         if(space){
             total_states = craptev1_sizeof_space(space);
-            if(total_states > CUTOFF){
-                craptev1_destroy_space(space);
-                space = NULL;
-            }
         }
     }
     return NULL;
@@ -661,6 +661,8 @@ int main (int argc, const char * argv[]) {
     }
     if(space){
         total_states = craptev1_sizeof_space(space);
+    } else {
+        total_states = 0;
     }
     if(!total_states){
         fprintf(stderr, "No solution found :(\n");
