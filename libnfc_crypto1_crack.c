@@ -498,7 +498,7 @@ void* crack_states_thread(void* x){
 }
 
 bool stop_collection = false;
-#define CUTOFF ((uint64_t) 1<<37)
+#define CUTOFF ((uint64_t) 1<<39)
 
 void * update_predictions_thread(void* p){
     while(!stop_collection){
