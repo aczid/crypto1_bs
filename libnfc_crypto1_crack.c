@@ -487,9 +487,6 @@ void* crack_states_thread(void* x){
         const uint64_t key = crack_states_bitsliced(space + j * 5);
         if(key != -1){
             found_key = key;
-            __sync_fetch_and_add(&keys_found, 1);
-            break;
-        } else if(keys_found){
             break;
         }
     }

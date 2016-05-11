@@ -45,7 +45,6 @@ uint32_t **space;
 size_t thread_count;
 size_t states_tested = 0;
 size_t total_states;
-size_t keys_found = 0;
 
 void* crack_states_thread(void* x){
     const size_t thread_id = (size_t)x;

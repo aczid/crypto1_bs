@@ -209,6 +209,7 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
             for(size_t results_idx = 0; results_idx < MAX_BITSLICES; ++results_idx){
                 if(get_vector_bit(results_idx, results)){
                     key = keys[results_idx].value;
+                    __sync_fetch_and_add(&keys_found, 1);
                     goto out;
                 }
             }
