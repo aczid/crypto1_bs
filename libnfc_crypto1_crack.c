@@ -587,6 +587,7 @@ int main (int argc, const char * argv[]) {
     nfc_device_set_property_bool(pnd,NP_INFINITE_SELECT,false);
     nfc_device_set_property_bool(pnd,NP_HANDLE_CRC,true);
     nfc_device_set_property_bool(pnd,NP_HANDLE_PARITY,true);
+    nfc_device_set_property_bool(pnd,NP_AUTO_ISO14443_4, false);
 
     uid = 0;
 
