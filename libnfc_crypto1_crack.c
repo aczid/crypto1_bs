@@ -480,7 +480,6 @@ uint32_t uid;
 uint32_t **space;
 uint64_t found_key;
 size_t thread_count;
-size_t total_states;
 void* crack_states_thread(void* x){
     const size_t thread_id = (size_t)x;
     int j;
