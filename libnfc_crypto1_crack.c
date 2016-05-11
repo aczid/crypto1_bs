@@ -668,6 +668,8 @@ int main (int argc, const char * argv[]) {
         fprintf(stderr, "No solution found :(\n");
         return 1;
     }
+
+    thread_count = get_nprocs_conf();
     // append some zeroes to the end of the space to make sure threads don't go off into the wild
     size_t j = 0;
     for(j = 0; space[j]; j+=5){
@@ -676,8 +678,6 @@ int main (int argc, const char * argv[]) {
     for(; j < fill; j++) {
         space[j] = 0;
     }
-
-    thread_count = get_nprocs_conf();
     pthread_t threads[thread_count];
 
     size_t i;
