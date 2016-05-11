@@ -49,6 +49,14 @@ int main(int argc, char* argv[]){
     total_states = craptev1_sizeof_space(space);
 
     thread_count = get_nprocs_conf();
+    // append some zeroes to the end of the space to make sure threads don't go off into the wild
+    size_t j = 0;
+    for(j = 0; space[j]; j+=5){
+    }
+    size_t fill = j + (5*thread_count);
+    for(; j < fill; j++) {
+        space[j] = 0;
+    }
     pthread_t threads[thread_count];
     size_t i;
 

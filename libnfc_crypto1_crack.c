@@ -660,6 +660,14 @@ int main (int argc, const char * argv[]) {
         space = craptev1_get_space(nonces, 95, uid);
     }
     if(space){
+        // append some zeroes to the end of the space to make sure threads don't go off into the wild
+        size_t j = 0;
+        for(j = 0; space[j]; j+=5){
+        }
+        size_t fill = j + (5*thread_count);
+        for(; j < fill; j++) {
+            space[j] = 0;
+        }
         total_states = craptev1_sizeof_space(space);
     } else {
         total_states = 0;
