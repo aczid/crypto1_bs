@@ -288,9 +288,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <signal.h>
 #include <pthread.h>
 #include <fcntl.h>
-#ifndef __WIN32
 #include <sys/sysinfo.h>
-#endif
 #include <nfc/nfc.h>
 #include <math.h>
 
@@ -677,8 +675,6 @@ int main (int argc, const char * argv[]) {
     }
     pthread_t threads[thread_count];
 
-    size_t i;
-
     crypto1_bs_init();
 
     uint8_t rollback_byte = **space;
@@ -702,12 +698,15 @@ int main (int argc, const char * argv[]) {
 
     notify_status_offline(0);
     alarm(1);
+
+    size_t i;
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
+    alarm(0);
     printf("\n");
     if(!keys_found){
         fprintf(stderr, "No solution found :(\n");
@@ -718,6 +717,5 @@ int main (int argc, const char * argv[]) {
     printf("Tested %zu states\n", total_states_tested);
 
     craptev1_destroy_space(space);
-    alarm(0);
     return 0;
 }
