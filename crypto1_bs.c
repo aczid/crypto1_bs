@@ -81,6 +81,7 @@ inline const bitslice_value_t crypto1_bs_lfsr_rollback(const bitslice_value_t in
 inline void crypto1_bs_convert_states(bitslice_t bitsliced_states[], state_t regular_states[]){
     size_t bit_idx = 0, slice_idx = 0;
     state_t values[MAX_BITSLICES];
+    memset(values, 0x0, sizeof(values));
     for(slice_idx = 0; slice_idx < MAX_BITSLICES; slice_idx++){
         for(bit_idx = 0; bit_idx < STATE_SIZE; bit_idx++){
             bool bit = get_vector_bit(slice_idx, bitsliced_states[bit_idx]);
