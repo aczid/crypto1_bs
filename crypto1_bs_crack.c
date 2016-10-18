@@ -97,7 +97,7 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
 
         // set even and rollback bits
         for(size_t block_idx = 0; block_idx < bitsliced_blocks; ++block_idx){
-            const bitslice_t const * restrict bitsliced_even_state = bitsliced_even_states[block_idx];
+            const bitslice_t * const restrict bitsliced_even_state = bitsliced_even_states[block_idx];
             size_t state_idx;
             // set even bits
             for(state_idx = 0; state_idx < (STATE_SIZE-ROLLBACK_SIZE); state_idx+=2){
