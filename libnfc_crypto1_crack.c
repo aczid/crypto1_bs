@@ -464,8 +464,7 @@ int nested_auth(uint32_t uid, uint64_t known_key, uint8_t ab_key, uint8_t for_bl
         nonces[nonces_collected] = 0;
         for(i = 0; i < 4; i++){
             nonces[nonces_collected] |= ((uint64_t) Rx[i]) << (8*i);
-            bool parity = (RxPar[i] != oddparity(Rx[i])) ^ parity(Rx[i]);
-            nonces[nonces_collected] |= ((uint64_t) parity) << (32 + (8*i));
+            nonces[nonces_collected] |= ((uint64_t) !RxPar[i]) << (32 + (8*i));
         }
         nonces_collected++;
     }
