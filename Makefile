@@ -5,7 +5,7 @@
 # or
 # -mavx2
 
-CRYPTO1_BS_OPTIMIZATION_ARGS=-O3 -march=native -mpopcnt
+CRYPTO1_BS_OPTIMIZATION_ARGS=-O3 -march=native
 # popcount is used for fast (hardware) parity computation on non-bitsliced states
 
 all: solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
