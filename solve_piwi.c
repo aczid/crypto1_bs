@@ -9,6 +9,7 @@
 #define __STDC_FORMAT_MACROS
 #define llx PRIx64
 #define lli PRIi64
+#define llu PRIu64
 #define lu PRIu32
 
 #define rev32(word) (((word & 0xff) << 24) | (((word >> 8) & 0xff) << 16) | (((word >> 16) & 0xff) << 8) | (((word >> 24) & 0xff)))
@@ -43,8 +44,8 @@ uint64_t *readnonces(char* fname){
 
 uint32_t **space;
 size_t thread_count;
-size_t states_tested = 0;
-size_t total_states;
+uint64_t states_tested = 0;
+uint64_t total_states;
 
 void* crack_states_thread(void* x){
     const size_t thread_id = (size_t)x;
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]){
         space[j] = 0;
     }
     pthread_t threads[thread_count];
-    printf("Starting %zu threads to test %zu states\n", thread_count, total_states);
+    printf("Starting %zu threads to test %"llu" states\n", thread_count, total_states);
     size_t i;
     states_tested = 0;
     for(i = 0; i < thread_count; i++){
@@ -89,7 +90,7 @@ int main(int argc, char* argv[]){
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
-    printf("Tested %zu states\n", states_tested);
+    printf("Tested %"llu" states\n", states_tested);
 
     craptev1_destroy_space(space);
     return 0;

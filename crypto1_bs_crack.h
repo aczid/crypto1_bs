@@ -5,8 +5,8 @@
 #include "craptev1.h"
 uint64_t crack_states_bitsliced(uint32_t **task);
 size_t keys_found;
-size_t total_states_tested;
-size_t total_states;
+uint64_t total_states_tested;
+uint64_t total_states;
 
 // linked from crapto1.c file
 extern uint8_t lfsr_rollback_byte(uint64_t* s, uint32_t in, int fb);

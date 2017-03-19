@@ -12,6 +12,7 @@
 #define __STDC_FORMAT_MACROS
 #define llx PRIx64
 #define lli PRIi64
+#define llu PRIu64
 #define lu PRIu32
 
 uint64_t split(uint8_t p){
@@ -106,14 +107,14 @@ int main(int argc, char* argv[]){
     total_states_tested = 0;
     keys_found = 0;
 
-    printf("Starting %zu threads to test %zu states\n", thread_count, total_states);
+    printf("Starting %zu threads to test %"llu" states\n", thread_count, total_states);
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
-    printf("Tested %zu states\n", total_states_tested);
+    printf("Tested %"llu" states\n", total_states_tested);
 
     craptev1_destroy_space(space);
     return 0;

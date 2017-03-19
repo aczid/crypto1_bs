@@ -293,6 +293,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <math.h>
 
 #include "crypto1_bs_crack.h"
+#define llu PRIu64
 
 extern uint64_t * crypto1_create(uint64_t key);
 extern uint32_t crypto1_word(uint64_t *, uint32_t, int);
@@ -520,7 +521,7 @@ void notify_status_online(int sig){
     if(!total_states){
         printf(VT100_cleareol "Collected %zu nonces... ", nonces_collected);
     } else {
-        printf(VT100_cleareol "Collected %zu nonces... leftover complexity %zu (~2^%0.2f)", nonces_collected, total_states, log(total_states) / log(2));
+        printf(VT100_cleareol "Collected %zu nonces... leftover complexity %"llu" (~2^%0.2f)", nonces_collected, total_states, log(total_states) / log(2));
         char c;
         if(scanf("%c", &c) == 1 || total_states < CUTOFF){
             printf(" - initializing brute-force phase...\n");
@@ -690,7 +691,7 @@ int main (int argc, const char * argv[]) {
         crypto1_bs_bitslice_value32(~(test_parity)<<24, bitsliced_encrypted_parity_bits[tests], 4);
     }
 
-    printf("Starting %zu threads to test %zu states using %u-way bitslicing\n", thread_count, total_states, MAX_BITSLICES);
+    printf("Starting %zu threads to test %"llu" states using %u-way bitslicing\n", thread_count, total_states, MAX_BITSLICES);
     total_states_tested = 0;
     keys_found = 0;
     signal(SIGALRM, notify_status_offline);
@@ -713,7 +714,7 @@ int main (int argc, const char * argv[]) {
     } else {
         printf("Found key: %012"PRIx64"\n", found_key);
     }
-    printf("Tested %zu states\n", total_states_tested);
+    printf("Tested %"llu" states\n", total_states_tested);
 
     craptev1_destroy_space(space);
     return 0;
