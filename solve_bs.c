@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#ifndef __WIN32
 #include <sys/sysinfo.h>
+#endif
 #include "craptev1.h"
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
@@ -19,7 +21,7 @@
 extern uint64_t *readnonces(char* fname);
 
 uint32_t **space;
-size_t thread_count;
+size_t thread_count = 1;
 
 void* crack_states_thread(void* x){
     const size_t thread_id = (size_t)x;
@@ -48,7 +50,9 @@ int main(int argc, char* argv[]){
     space = craptev1_get_space(nonces, 95, uid);
     total_states = craptev1_sizeof_space(space);
 
+#ifndef __WIN32
     thread_count = get_nprocs_conf();
+#endif
     // append some zeroes to the end of the space to make sure threads don't go off into the wild
     size_t j = 0;
     for(j = 0; space[j]; j+=5){
