@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#ifndef __WIN32
 #include <sys/sysinfo.h>
+#endif
 #include "craptev1.h"
 #include <inttypes.h>
 #define __STDC_FORMAT_MACROS
@@ -43,7 +45,7 @@ uint64_t *readnonces(char* fname){
 }
 
 uint32_t **space;
-size_t thread_count;
+size_t thread_count = 1;
 uint64_t states_tested = 0;
 uint64_t total_states;
 
@@ -71,7 +73,9 @@ int main(int argc, char* argv[]){
     space = craptev1_get_space(nonces, 95, uid);
     total_states = craptev1_sizeof_space(space);
 
+#ifndef __WIN32
     thread_count = get_nprocs_conf();
+#endif
     // append some zeroes to the end of the space to make sure threads don't go off into the wild
     size_t j = 0;
     for(j = 0; space[j]; j+=5){

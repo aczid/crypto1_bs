@@ -39,7 +39,19 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
     bitslice_t * restrict bitsliced_even_states[(task[4]-task[3])/MAX_BITSLICES];
     size_t bitsliced_blocks = 0;
     for(uint32_t const * restrict p_even = task[3]; p_even < task[4]; p_even+=MAX_BITSLICES){
-        bitslice_t * restrict lstate_p = memalign(sizeof(bitslice_t), (STATE_SIZE+ROLLBACK_SIZE)*sizeof(bitslice_t));
+#ifdef __WIN32
+	#ifdef __MINGW32__
+		bitslice_t * restrict lstate_p = __mingw_aligned_malloc((STATE_SIZE+ROLLBACK_SIZE) * sizeof(bitslice_t), sizeof(bitslice_t));
+	#else		
+		bitslice_t * restrict lstate_p = _aligned_malloc((STATE_SIZE+ROLLBACK_SIZE) * sizeof(bitslice_t), sizeof(bitslice_t));
+	#endif
+#else
+	#ifdef __APPLE__
+		bitslice_t * restrict lstate_p = malloc((STATE_SIZE+ROLLBACK_SIZE) * sizeof(bitslice_t));
+	#else
+		bitslice_t * restrict lstate_p = memalign(sizeof(bitslice_t), (STATE_SIZE+ROLLBACK_SIZE) * sizeof(bitslice_t));
+	#endif
+#endif
         memset(lstate_p, 0x0, (STATE_SIZE)*sizeof(bitslice_t));
         // bitslice even half-states
         const size_t max_slices = (task[4]-p_even) < MAX_BITSLICES ? task[4]-p_even : MAX_BITSLICES;
