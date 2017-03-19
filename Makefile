@@ -5,25 +5,30 @@
 # or
 # -mavx2
 
-CRYPTO1_BS_OPTIMIZATION_ARGS=-O3 -march=native
+CC     = gcc
+CFLAGS = -std=gnu99 -O3 -march=native
 # popcount is used for fast (hardware) parity computation on non-bitsliced states
 
 all: solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
 
+CRAPTEV1_CODE = craptev1-v1.0/craptev1.c -I craptev1-v1.0/
+CRAPTO1_CODE = crapto1-v3.3/crapto1.c crapto1-v3.3/crypto1.c -I crapto1-v3.3/ 
+CRYPTO1_BS_CODE = crypto1_bs.c crypto1_bs_crack.c 
+
 solve.so:
-	gcc -O3 craptev1-v1.0/solve.c -fPIC -shared -o solve.so
+	$(CC) $(CFLAGS) craptev1-v1.0/solve.c -fPIC -shared -o solve.so
 
 solve_bs: solve.so
-	gcc -std=c99 ${CRYPTO1_BS_OPTIMIZATION_ARGS} solve_bs.c crypto1_bs.c crypto1_bs_crack.c -Icraptev1-v1.0 craptev1-v1.0/craptev1.c crapto1-v3.3/crapto1.c ./solve.so -o solve_bs -lpthread
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS_CODE) $(CRAPTO1_CODE) ${CRAPTEV1_CODE} ./solve.so -o $@ -lpthread
 
 solve_piwi_bs:
-	gcc -std=c99 ${CRYPTO1_BS_OPTIMIZATION_ARGS} solve_piwi_bs.c crypto1_bs.c crypto1_bs_crack.c -Icraptev1-v1.0 craptev1-v1.0/craptev1.c crapto1-v3.3/crapto1.c -o solve_piwi_bs -lpthread
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS_CODE) $(CRAPTO1_CODE) ${CRAPTEV1_CODE} -o $@ -lpthread
 
 solve_piwi:
-	gcc ${CRYPTO1_BS_OPTIMIZATION_ARGS} solve_piwi.c -I craptev1-v1.0 craptev1-v1.0/craptev1.c -o solve_piwi -lpthread
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS_CODE) $(CRAPTO1_CODE) ${CRAPTEV1_CODE} -o $@ -lpthread
 
 libnfc_crypto1_crack:
-	gcc -std=c99 ${CRYPTO1_BS_OPTIMIZATION_ARGS} -Icraptev1-v1.0 -Icrapto1-v3.3 libnfc_crypto1_crack.c crypto1_bs.c crypto1_bs_crack.c crapto1-v3.3/crypto1.c crapto1-v3.3/crapto1.c craptev1-v1.0/craptev1.c -o libnfc_crypto1_crack -lpthread -lnfc -lm
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS_CODE) $(CRAPTO1_CODE) ${CRAPTEV1_CODE} -o $@ -lpthread -lnfc -lm
 
 clean:
 	rm -f solve.so solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
@@ -36,4 +41,3 @@ get_crapto1:
 	wget http://crapto1.netgarage.org/crapto1-v3.3.tar.xz
 	mkdir crapto1-v3.3
 	tar Jxvf crapto1-v3.3.tar.xz -C crapto1-v3.3
-
