@@ -136,11 +136,11 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
 #ifdef EXACT_COUNT
             bucket_states_tested += bucket_size[block_idx];
 #ifdef ONLINE_COUNT
-            __sync_fetch_and_add(&total_states_tested, bucket_size[block_idx]);
+            __atomic_fetch_add(&total_states_tested, bucket_size[block_idx], __ATOMIC_SEQ_CST);
 #endif
 #else
 #ifdef ONLINE_COUNT
-            __sync_fetch_and_add(&total_states_tested, MAX_BITSLICES);
+            __atomic_fetch_add(&total_states_tested, MAX_BITSLICES, __ATOMIC_SEQ_CST);
 #endif
 #endif
             // pre-compute first keystream and feedback bit vectors
@@ -221,7 +221,7 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
             for(size_t results_idx = 0; results_idx < MAX_BITSLICES; ++results_idx){
                 if(get_vector_bit(results_idx, results)){
                     key = keys[results_idx].value;
-                    __sync_fetch_and_add(&keys_found, 1);
+                    __atomic_fetch_add(&keys_found, 1, __ATOMIC_SEQ_CST);
                     goto out;
                 }
             }
@@ -236,7 +236,7 @@ out:
         free(bitsliced_even_states[block_idx]-ROLLBACK_SIZE);
     }
 #ifndef ONLINE_COUNT
-    __sync_fetch_and_add(&total_states_tested, bucket_states_tested);
+    __atomic_fetch_add(&total_states_tested, bucket_states_tested, __ATOMIC_SEQ_CST);
 #endif
     return key;
 }
