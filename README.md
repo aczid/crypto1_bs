@@ -13,7 +13,7 @@ After my development of a somewhat naive brute-forcer, another implementation of
 With all of its clever tricks that code pushed me to improve my own, eventually reaching a significant (8-10x) speedup.
 Besides that, its publication as a library also inspired the included libnfc application that demonstrates the CraptEV1 attack code + my bitsliced cracker.
 
-The proxmark3 patch, as well as the code for pwpiwi's branch that it applies to, have since been merged into [Iceman1001's fork](https://github.com/iceman1001/proxmark3/) along with many other experimental improvements to the proxmark3 codebase.
+The proxmark3 patch, as well as the code for piwi's branch that it applies to, have since been merged into [Iceman1001's fork](https://github.com/iceman1001/proxmark3/) along with many other experimental improvements to the proxmark3 codebase.
 Much more work has been done in the project since my patch, so I would advise proxmark3 users to use that fork to test the code.
 My original patch is included for completeness as `pwpiwi_proxmark3_hard_nested.patch`.
 
@@ -21,7 +21,7 @@ Tools
 -----
 
 ~~The following tools are only available for / tested on 64-bit Linux.~~
-Support for 32-bit and 64-bit machines was tested on various x86/ARM based Linux platforms.
+Support for 32-bit and 64-bit machines was tested on various Intel/ARM based Linux platforms.
 
 If you want to use the following stand-alone binaries, you will need the original CraptEV1 / Crapto1 source packages.
 For convenience, and because redistribution of CraptEV1 is not allowed, I've added make targets `get_craptev1` and `get_crapto1` to fetch and extract these packages to the current working directory.
