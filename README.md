@@ -8,16 +8,20 @@ Background
 ----------
 
 I wrote this as a patch for [piwi's imlementation](https://github.com/pwpiwi/proxmark3/tree/hard_nested/) of the research documented in [Ciphertext-only cryptanalysis on hardened Mifare Classic cards](http://www.cs.ru.nl/~rverdult/Ciphertext-only_Cryptanalysis_on_Hardened_Mifare_Classic_Cards-CCS_2015.pdf) after reading (most of) the paper, while it was still under [active development](http://www.proxmark.org/forum/viewtopic.php?id=2120).
-The final patch is included as `pwpiwi_proxmark3_hard_nested.patch`.
 
-Later on, another implementation of the same attack surfaced, [CraptEV1](http://crapto1.netgarage.org/).
-I managed to gather some great tricks from that code, which unfortunately is off-line now (and has a license forbidding redistribution).
-This also allowed me to compare my Crypto-1 implementation to a finished brute-forcer, and eventually I managed to significantly beat CraptEV1's (great) performance.
+After my development of a somewhat naive brute-forcer, another implementation of the same attack surfaced, [CraptEV1](http://crapto1.netgarage.org/).
+With all of its clever tricks that code pushed me to improve my own, eventually reaching a significant (8-10x) speedup.
+Besides that, its publication as a library also inspired the included libnfc application that demonstrates the CraptEV1 attack code + my bitsliced cracker.
+
+The proxmark3 patch, as well as the code for pwpiwi's branch that it applies to, have since been merged into [Iceman1001's fork](https://github.com/iceman1001/proxmark3/) along with many other experimental improvements to the proxmark3 codebase.
+Much more work has been done in the project since my patch, so I would advise proxmark3 users to use that fork to test the code.
+My original patch is included for completeness as `pwpiwi_proxmark3_hard_nested.patch`.
 
 Tools
 -----
 
-The following tools are only available for / tested on 64-bit Linux.
+~~The following tools are only available for / tested on 64-bit Linux.~~
+Support for 32-bit and 64-bit machines was tested on various x86/ARM based Linux platforms.
 
 If you want to use the following stand-alone binaries, you will need the original CraptEV1 / Crapto1 source packages.
 For convenience, and because redistribution of CraptEV1 is not allowed, I've added make targets `get_craptev1` and `get_crapto1` to fetch and extract these packages to the current working directory.
@@ -25,7 +29,7 @@ I have included a conversion of the test file `0xcafec0de.txt` included in the C
 
 `solve_bs` is analogous to CraptEV1 `solve` and works on .txt files using the bitsliced crypto-1 cracker
 
-    $ ./solve_bs craptev1-v1.0/0xcafec0de.txt 0xcafec0de
+    $ ./solve_bs craptev1-v1.1/0xcafec0de.txt 0xcafec0de
 
 `solve_piwi` uses CraptEV1 on .bin files as gathered by piwi's PM3 code
 
