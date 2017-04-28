@@ -233,7 +233,15 @@ stop_tests:
     }
 out:
     for(size_t block_idx = 0; block_idx < bitsliced_blocks; ++block_idx){
-        free(bitsliced_even_states[block_idx]-ROLLBACK_SIZE);
+#ifdef __WIN32
+	#ifdef __MINGW32__
+		__mingw_aligned_free(bitsliced_even_states[block_idx]-ROLLBACK_SIZE);
+	#else
+		_aligned_free(bitsliced_even_states[block_idx]-ROLLBACK_SIZE);		
+	#endif
+#else
+		free(bitsliced_even_states[block_idx]-ROLLBACK_SIZE);
+#endif	
     }
 #ifndef ONLINE_COUNT
     __atomic_fetch_add(&total_states_tested, bucket_states_tested, __ATOMIC_RELAXED);
