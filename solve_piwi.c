@@ -23,16 +23,16 @@ uint64_t split(uint8_t p){
 uint32_t uid;
 uint64_t *readnonces(char* fname){
     int i;
-    FILE *f = fopen(fname, "r");
+    FILE *f = fopen(fname, "rb");
     uint64_t *nonces = malloc(sizeof (uint64_t) <<  24);
     if(fread(&uid, 1, 4, f)){
         uid = rev32(uid);
     }
     fseek(f, 6, SEEK_SET);
     i = 0;
+    uint32_t nt_enc1, nt_enc2;
+    uint8_t par_enc;
     while(!feof(f)){
-        uint32_t nt_enc1, nt_enc2;
-        uint8_t par_enc;
         if(fread(&nt_enc1, 1, 4, f) && fread(&nt_enc2, 1, 4, f) && fread(&par_enc, 1, 1, f)){
             nonces[i  ] = split(~(par_enc >>   4)) << 32 | nt_enc1;
             nonces[i+1] = split(~(par_enc & 0xff)) << 32 | nt_enc2;
@@ -45,7 +45,7 @@ uint64_t *readnonces(char* fname){
 }
 
 uint32_t **space;
-size_t thread_count = 1;
+uint8_t thread_count = 1;
 uint64_t states_tested = 0;
 uint64_t total_states;
 
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]){
         space[j] = 0;
     }
     pthread_t threads[thread_count];
-    printf("Starting %zu threads to test %"llu" states\n", thread_count, total_states);
+    printf("Starting %u threads to test %"llu" states\n", thread_count, total_states);
     size_t i;
     states_tested = 0;
     for(i = 0; i < thread_count; i++){

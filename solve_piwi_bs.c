@@ -24,7 +24,7 @@ uint64_t split(uint8_t p){
 uint32_t uid;
 uint64_t *readnonces(char* fname){
     int i;
-    FILE *f = fopen(fname, "r");
+    FILE *f = fopen(fname, "rb");
     uint64_t *nonces = malloc(sizeof (uint64_t) <<  24);
     if(fread(&uid, 1, 4, f)){
         uid = rev32(uid);
@@ -46,7 +46,7 @@ uint64_t *readnonces(char* fname){
 }
 
 uint32_t **space;
-size_t thread_count = 1;
+uint8_t thread_count = 1;
 
 void* crack_states_thread(void* x){
     const size_t thread_id = (size_t)x;
@@ -76,7 +76,9 @@ int main(int argc, char* argv[]){
 
 #ifndef __WIN32
 	thread_count = sysconf(_SC_NPROCESSORS_CONF);
-#endif /* _WIN32 */
+#else
+    thread_count = 1;
+#endif
 
     // append some zeroes to the end of the space to make sure threads don't go off into the wild
     size_t j = 0;
@@ -112,7 +114,7 @@ int main(int argc, char* argv[]){
     total_states_tested = 0;
     keys_found = 0;
 
-    printf("Starting %zu threads to test %"llu" states\n", thread_count, total_states);
+    printf("Starting %u threads to test %"llu" states\n", thread_count, total_states);
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
