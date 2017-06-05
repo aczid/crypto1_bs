@@ -617,7 +617,7 @@ int main (int argc, const char * argv[]) {
     }
     switch(nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, NULL)){
         case KEY_WRONG:
-            printf("%012"PRIx64" doesn't look like the right key %s for block %u\n", known_key, ab_key == MC_AUTH_A ? "A" : "B", for_block);
+            printf("%012"PRIx64" doesn't look like the right key %s for block %u (sector %u)\n", known_key, ab_key == MC_AUTH_A ? "A" : "B", for_block, for_block >> 2);
             return 1;
         case OK:
             break;
@@ -631,7 +631,8 @@ int main (int argc, const char * argv[]) {
     sprintf(filename, "0x%04x_%03u%s.txt", uid, target_block, target_key == MC_AUTH_A ? "A" : "B");
     fp = fopen(filename, "wb");
 
-    printf("Found tag with uid %04x, collecting nonces for key %s of block %u using known key %s %012"PRIx64" for block %u\n", uid, target_key == MC_AUTH_A ? "A" : "B", target_block, ab_key == MC_AUTH_A ? "A" : "B", known_key, for_block);
+    printf("Found tag with uid %04x, collecting nonces for key %s of block %u (sector %u) using known key %s %012"PRIx64" for block %u (sector %u)\n",
+           uid, target_key == MC_AUTH_A ? "A" : "B", target_block, target_block >> 2, ab_key == MC_AUTH_A ? "A" : "B", known_key, for_block, for_block >> 2);
     nonces_collected = 0;
     nonces = malloc(sizeof (uint64_t) <<  24);
     memset(nonces, 0xff, sizeof (uint64_t) <<  24);
