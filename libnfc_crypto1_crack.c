@@ -325,6 +325,17 @@ long long unsigned int bytes_to_num(uint8_t *src, uint32_t len)
     return num;
 }
 
+// Sectors 0 to 31 have 4 blocks per sector.
+// Sectors 32 to 39 have 16 blocks per sector.
+uint8_t block_to_sector(uint8_t block)
+{
+    uint8_t sector;
+    if(block < 128) {
+        return block >> 2;
+    }
+    block -= 128;
+    return 32 + (block >> 4);
+}
 
 static nfc_context *context;
 
@@ -617,7 +628,7 @@ int main (int argc, const char * argv[]) {
     }
     switch(nested_auth(uid, known_key, ab_key, for_block, target_block, target_key, NULL)){
         case KEY_WRONG:
-            printf("%012"PRIx64" doesn't look like the right key %s for block %u\n", known_key, ab_key == MC_AUTH_A ? "A" : "B", for_block);
+            printf("%012"PRIx64" doesn't look like the right key %s for block %u (sector %u)\n", known_key, ab_key == MC_AUTH_A ? "A" : "B", for_block, block_to_sector(for_block));
             return 1;
         case OK:
             break;
@@ -631,7 +642,8 @@ int main (int argc, const char * argv[]) {
     sprintf(filename, "0x%04x_%03u%s.txt", uid, target_block, target_key == MC_AUTH_A ? "A" : "B");
     fp = fopen(filename, "wb");
 
-    printf("Found tag with uid %04x, collecting nonces for key %s of block %u using known key %s %012"PRIx64" for block %u\n", uid, target_key == MC_AUTH_A ? "A" : "B", target_block, ab_key == MC_AUTH_A ? "A" : "B", known_key, for_block);
+    printf("Found tag with uid %04x, collecting nonces for key %s of block %u (sector %u) using known key %s %012"PRIx64" for block %u (sector %u)\n",
+           uid, target_key == MC_AUTH_A ? "A" : "B", target_block, block_to_sector(target_block), ab_key == MC_AUTH_A ? "A" : "B", known_key, for_block, block_to_sector(for_block));
     nonces_collected = 0;
     nonces = malloc(sizeof (uint64_t) <<  24);
     memset(nonces, 0xff, sizeof (uint64_t) <<  24);
