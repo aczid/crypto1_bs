@@ -288,7 +288,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <signal.h>
 #include <pthread.h>
 #include <fcntl.h>
-#include <sys/sysinfo.h>
+#include <unistd.h>
 #include <nfc/nfc.h>
 #include <math.h>
 
@@ -676,7 +676,11 @@ int main (int argc, const char * argv[]) {
         return 1;
     }
 
-    thread_count = get_nprocs_conf();
+#ifndef __WIN32
+    thread_count = sysconf(_SC_NPROCESSORS_CONF);
+#else
+    thread_count = 1;
+#endif
     // append some zeroes to the end of the space to make sure threads don't go off into the wild
     size_t j = 0;
     for(j = 0; space[j]; j+=5){

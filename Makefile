@@ -15,11 +15,8 @@ CRAPTEV1 = craptev1-v1.1/craptev1.c -I craptev1-v1.1/
 CRAPTO1 = crapto1-v3.3/crapto1.c crapto1-v3.3/crypto1.c -I crapto1-v3.3/ 
 CRYPTO1_BS = crypto1_bs.c crypto1_bs_crack.c 
 
-solve.so:
-	$(CC) $(CFLAGS) craptev1-v1.1/solve.c -fPIC -shared -o solve.so
-
-solve_bs: solve.so
-	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} ./solve.so -o $@ -lpthread
+solve_bs:
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread
 
 solve_piwi_bs:
 	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread

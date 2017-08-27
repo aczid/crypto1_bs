@@ -1,12 +1,8 @@
 #include <stdlib.h>
-#include <malloc.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
-#ifndef __WIN32
-#include <sys/sysinfo.h>
-#endif
 #include "craptev1.h"
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
@@ -17,11 +13,33 @@
 #define llu PRIu64
 #define lu PRIu32
 
-// linked from .so / .c files by bla
-extern uint64_t *readnonces(char* fname);
-
 uint32_t **space;
 size_t thread_count = 1;
+
+uint64_t *readnonces(char* fname) {
+    int i, j, r;
+    FILE *f = fopen(fname, "r");
+    uint64_t *nonces = malloc(sizeof (uint64_t) <<  24);
+    uint32_t byte;
+    char parities;
+
+    for(i = 0; !feof(f); ++i) {
+        for(j = nonces[i] = 0; j < 4; ++j) {
+            r = fscanf(f, "%02x%c ", &byte, &parities);
+            if(r != 2) {
+                fprintf(stderr, "Input parse error pos:%ld\n", ftell(f));
+                fflush(stderr);
+                abort();
+            }
+            parities = (parities == '!') ^ parity(byte);
+            nonces[i] |= byte <<  8 * j;
+            nonces[i] |= ((uint64_t)parities) << (32 + j * 8);
+        }
+    }
+    nonces[i] = -1;
+    fclose(f);
+    return nonces;
+}
 
 void* crack_states_thread(void* x){
     const size_t thread_id = (size_t)x;
@@ -51,7 +69,9 @@ int main(int argc, char* argv[]){
     total_states = craptev1_sizeof_space(space);
 
 #ifndef __WIN32
-    thread_count = get_nprocs_conf();
+    thread_count = sysconf(_SC_NPROCESSORS_CONF);
+#else
+    thread_count = 1;
 #endif
     // append some zeroes to the end of the space to make sure threads don't go off into the wild
     size_t j = 0;

@@ -1,12 +1,8 @@
 #include <stdlib.h>
-#include <malloc.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
-#ifndef __WIN32
-#include <sys/sysinfo.h>
-#endif
 #include "craptev1.h"
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"

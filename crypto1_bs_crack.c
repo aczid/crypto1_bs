@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <malloc.h>
+#include <stdlib.h>
 #include "crypto1_bs_crack.h"
 
 inline uint64_t crack_states_bitsliced(uint32_t **task){
@@ -134,9 +134,10 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
             }
 
 #ifdef EXACT_COUNT
-            bucket_states_tested += bucket_size[block_idx];
+            // Fix a "1000000% bug". Looks like here is a problem with OS X gcc
+            bucket_states_tested += bucket_size[block_idx] > MAX_BITSLICES ? MAX_BITSLICES : bucket_size[block_idx];
 #ifdef ONLINE_COUNT
-            __atomic_fetch_add(&total_states_tested, bucket_size[block_idx], __ATOMIC_RELAXED);
+            __atomic_fetch_add(&total_states_tested, bucket_size[block_idx] > MAX_BITSLICES ? MAX_BITSLICES : bucket_size[block_idx], __ATOMIC_RELAXED);
 #endif
 #else
 #ifdef ONLINE_COUNT
