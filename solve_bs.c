@@ -19,24 +19,28 @@ uint32_t **space;
 size_t thread_count = 1;
 
 uint64_t *readnonces(char* fname) {
-    int i, j, r;
+    int i, j;
     FILE *f = fopen(fname, "r");
+    if (f == NULL) {
+        fprintf(stderr, "Cannot open file.\n");
+        exit(EXIT_FAILURE);
+    }
     uint64_t *nonces = malloc(sizeof (uint64_t) <<  24);
-    uint32_t byte;
-    char parities;
+    uint32_t nt;
+    char par;
 
-    for(i = 0; !feof(f); ++i) {
-        for(j = nonces[i] = 0; j < 4; ++j) {
-            r = fscanf(f, "%02x%c ", &byte, &parities);
-            if(r != 2) {
-                fprintf(stderr, "Input parse error pos:%ld\n", ftell(f));
+    i = 0;
+    while(!feof(f)){
+        nonces[i] = 0;
+        for(j = 0; j < 32; j += 8) {
+            if(2 != fscanf(f, "%02x%c ", &nt, &par)) {
+                fprintf(stderr, "Input format error at line:%d\n", i);
                 fflush(stderr);
-                abort();
+                exit(EXIT_FAILURE);
             }
-            parities = (parities == '!') ^ parity(byte);
-            nonces[i] |= byte <<  8 * j;
-            nonces[i] |= ((uint64_t)parities) << (32 + j * 8);
+            nonces[i] |= nt << j | (uint64_t)((par == '!') ^ parity(nt)) << (32 + j);
         }
+        i++;
     }
     nonces[i] = -1;
     fclose(f);
