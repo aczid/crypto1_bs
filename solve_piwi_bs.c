@@ -1,21 +1,20 @@
 #include <stdlib.h>
-#include <malloc.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <signal.h>
 #include <pthread.h>
-#ifndef __WIN32
-#include <sys/sysinfo.h>
-#endif
 #include "craptev1.h"
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
 #include <inttypes.h>
+#include <math.h>
 #define __STDC_FORMAT_MACROS
 #define llx PRIx64
 #define lli PRIi64
 #define llu PRIu64
 #define lu PRIu32
+#define VT100_cleareol "\r\33[2K"
 
 uint64_t split(uint8_t p){
     return (((p & 0x8) >>3 )| ((p & 0x4) >> 2) << 8 | ((p & 0x2) >> 1) << 16 | (p & 0x1) << 24 );
@@ -25,6 +24,10 @@ uint32_t uid;
 uint64_t *readnonces(char* fname){
     int i;
     FILE *f = fopen(fname, "rb");
+    if (f == NULL) {
+        fprintf(stderr, "Cannot open file.\n");
+        exit(EXIT_FAILURE);
+    }
     uint64_t *nonces = malloc(sizeof (uint64_t) <<  24);
     if(fread(&uid, 1, 4, f)){
         uid = rev32(uid);
@@ -58,11 +61,16 @@ void* crack_states_thread(void* x){
             break;
         } else if(keys_found){
             break;
-        } else {
-            printf("Cracking... %6.02f%%\n", (100.0*total_states_tested/(total_states)));
         }
     }
     return NULL;
+}
+
+void notify_status_offline(int sig){
+    printf(VT100_cleareol "Cracking... %6.02f%%", (100.0*total_states_tested/(total_states)));
+    alarm(1);
+    fflush(stdout);
+    signal(SIGALRM, notify_status_offline);
 }
 
 int main(int argc, char* argv[]){
@@ -70,7 +78,9 @@ int main(int argc, char* argv[]){
         printf("Usage: %s <nonces.bin>\n", argv[0]);
         return -1;
     }
+    printf("Reading nonces...\n");
     uint64_t *nonces = readnonces(argv[1]);
+    printf("Deriving search space...\n");
     space = craptev1_get_space(nonces, 95, uid);
     total_states = craptev1_sizeof_space(space);
 
@@ -114,13 +124,20 @@ int main(int argc, char* argv[]){
     total_states_tested = 0;
     keys_found = 0;
 
-    printf("Starting %u threads to test %"llu" states\n", thread_count, total_states);
+    printf("Starting %u threads to test %"llu" (~2^%0.2f) states\n", thread_count, total_states, log(total_states) / log(2));
+
+    signal(SIGALRM, notify_status_offline);
+    alarm(1);
+
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
+
+    alarm(0);
+
     printf("Tested %"llu" states\n", total_states_tested);
 
     craptev1_destroy_space(space);

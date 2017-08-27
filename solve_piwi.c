@@ -3,9 +3,6 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
-#ifndef __WIN32
-#include <sys/sysinfo.h>
-#endif
 #include "craptev1.h"
 #include <inttypes.h>
 #define __STDC_FORMAT_MACROS
@@ -74,7 +71,9 @@ int main(int argc, char* argv[]){
     total_states = craptev1_sizeof_space(space);
 
 #ifndef __WIN32
-    thread_count = get_nprocs_conf();
+    thread_count = sysconf(_SC_NPROCESSORS_CONF);
+#else
+    thread_count = 1;
 #endif
     // append some zeroes to the end of the space to make sure threads don't go off into the wild
     size_t j = 0;
