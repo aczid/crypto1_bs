@@ -23,6 +23,9 @@ THE SOFTWARE.
 */
 
 #include <stdlib.h>
+#ifndef __APPLE__
+#include <malloc.h>
+#endif
 #include "crypto1_bs_crack.h"
 
 inline uint64_t crack_states_bitsliced(uint32_t **task){

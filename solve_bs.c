@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <signal.h>
 #include <pthread.h>
 #include "craptev1.h"
 #include "crypto1_bs.h"
