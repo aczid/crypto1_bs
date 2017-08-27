@@ -12,6 +12,7 @@
 #define lli PRIi64
 #define llu PRIu64
 #define lu PRIu32
+#define VT100_cleareol "\r\33[2K"
 
 uint32_t **space;
 size_t thread_count = 1;
@@ -51,11 +52,16 @@ void* crack_states_thread(void* x){
             break;
         } else if(keys_found){
             break;
-        } else {
-            printf("Cracking... %6.02f%%\n", (total_states_tested/(total_states/100.0)));
         }
     }
     return NULL;
+}
+
+void notify_status_offline(int sig){
+    printf(VT100_cleareol "Cracking... %6.02f%%", (100.0*total_states_tested/(total_states)));
+    alarm(1);
+    fflush(stdout);
+    signal(SIGALRM, notify_status_offline);
 }
 
 int main(int argc, char* argv[]){
@@ -63,8 +69,10 @@ int main(int argc, char* argv[]){
         printf("Usage: %s <nonces.txt> <uid>\n", argv[0]);
         return -1;
     }
+    printf("Reading nonces...\n");
     uint64_t *nonces = readnonces(argv[1]);
     uint32_t uid = strtoul(argv[2], NULL, 16);
+    printf("Deriving search space...\n");
     space = craptev1_get_space(nonces, 95, uid);
     total_states = craptev1_sizeof_space(space);
 
@@ -108,12 +116,19 @@ int main(int argc, char* argv[]){
     keys_found = 0;
 
     printf("Starting %zu threads to test %"llu" states\n", thread_count, total_states);
+
+    signal(SIGALRM, notify_status_offline);
+    alarm(1);
+
     for(i = 0; i < thread_count; i++){
         pthread_create(&threads[i], NULL, crack_states_thread, (void*) i);
     }
     for(i = 0; i < thread_count; i++){
         pthread_join(threads[i], 0);
     }
+
+    alarm(0);
+
     printf("Tested %"llu" states\n", total_states_tested);
 
     craptev1_destroy_space(space);
