@@ -8,6 +8,7 @@
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
 #include <inttypes.h>
+#include <math.h>
 #define __STDC_FORMAT_MACROS
 #define llx PRIx64
 #define lli PRIi64
@@ -16,7 +17,7 @@
 #define VT100_cleareol "\r\33[2K"
 
 uint32_t **space;
-size_t thread_count = 1;
+uint8_t thread_count = 1;
 
 uint64_t *readnonces(char* fname) {
     int i, j;
@@ -120,7 +121,7 @@ int main(int argc, char* argv[]){
     total_states_tested = 0;
     keys_found = 0;
 
-    printf("Starting %zu threads to test %"llu" states\n", thread_count, total_states);
+    printf("Starting %u threads to test %"llu" (~2^%0.2f) states\n", thread_count, total_states, log(total_states) / log(2));
 
     signal(SIGALRM, notify_status_offline);
     alarm(1);
@@ -134,7 +135,9 @@ int main(int argc, char* argv[]){
 
     alarm(0);
 
-    printf("Tested %"llu" states\n", total_states_tested);
+    printf("\nTested %"llu" states\n", total_states_tested);
+
+    if(!keys_found) fprintf(stderr, "No solution found :(\n");
 
     craptev1_destroy_space(space);
     return 0;

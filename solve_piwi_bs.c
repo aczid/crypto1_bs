@@ -8,6 +8,7 @@
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
 #include <inttypes.h>
+#include <math.h>
 #define __STDC_FORMAT_MACROS
 #define llx PRIx64
 #define lli PRIi64
@@ -23,6 +24,10 @@ uint32_t uid;
 uint64_t *readnonces(char* fname){
     int i;
     FILE *f = fopen(fname, "rb");
+    if (f == NULL) {
+        fprintf(stderr, "Cannot open file.\n");
+        exit(EXIT_FAILURE);
+    }
     uint64_t *nonces = malloc(sizeof (uint64_t) <<  24);
     if(fread(&uid, 1, 4, f)){
         uid = rev32(uid);
@@ -119,7 +124,7 @@ int main(int argc, char* argv[]){
     total_states_tested = 0;
     keys_found = 0;
 
-    printf("Starting %u threads to test %"llu" states\n", thread_count, total_states);
+    printf("Starting %u threads to test %"llu" (~2^%0.2f) states\n", thread_count, total_states, log(total_states) / log(2));
 
     signal(SIGALRM, notify_status_offline);
     alarm(1);

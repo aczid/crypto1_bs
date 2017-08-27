@@ -517,6 +517,7 @@ void * update_predictions_thread(void* p){
         if(space){
             total_states = craptev1_sizeof_space(space);
         }
+        sleep(1); // We don't need to check this more often than once per second
     }
     return NULL;
 }
