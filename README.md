@@ -17,7 +17,7 @@ The proxmark3 patch, as well as the code for piwi's branch that it applies to, h
 Much more work has been done in the project since my patch, so I would advise proxmark3 users to use that fork to test the code.
 My original patch is included for completeness as `pwpiwi_proxmark3_hard_nested.patch`.
 
-Even later still, this code actually got merged into the upstream [Proxmark3 codebase](https://github.com/Proxmark/proxmark3)! More importantly, it was included as part of an entirely new variation on the attack by @pwpiwi, which requires fewer nonces and achieves a better reduction of potential states, ending up as another order of magnitude faster in practice.
+Even later still, this code actually got merged into the upstream [Proxmark3 codebase](https://github.com/Proxmark/proxmark3)! More importantly, it was included as part of an entirely new variation on the attack by [@pwpiwi](https://github.com/pwpiwi/), which requires fewer nonces and achieves a better reduction of potential states, ending up as another order of magnitude faster in practice.
 My ideal is to also merge his great new tricks into the `libnfc_crypto1_crack` tool. It seems easy to port but I haven't made the effort yet.
 
 Tools
