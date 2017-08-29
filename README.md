@@ -25,6 +25,7 @@ Tools
 
 ~~The following tools are only available for / tested on 64-bit Linux.~~
 Support for 32-bit and 64-bit machines was tested on various Intel/ARM based Linux platforms.
+OSX compatibility issues were resolved by [@unkernet](https://github.com/unkernet/).
 
 If you want to use the following stand-alone binaries, you will need the original CraptEV1 / Crapto1 source packages.
 For convenience, and because redistribution of CraptEV1 is not allowed, I've added make targets `get_craptev1` and `get_crapto1` to fetch and extract these packages to the current working directory.
