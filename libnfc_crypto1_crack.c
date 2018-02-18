@@ -640,7 +640,7 @@ int main (int argc, const char * argv[]) {
     }
     
     char filename[21];
-    sprintf(filename, "0x%04x_%03u%s.txt", uid, target_block, target_key == MC_AUTH_A ? "A" : "B");
+    sprintf(filename, "0x%08x_%03u%s.txt", uid, target_block, target_key == MC_AUTH_A ? "A" : "B");
     fp = fopen(filename, "wb");
 
     printf("Found tag with uid %04x, collecting nonces for key %s of block %u (sector %u) using known key %s %012"PRIx64" for block %u (sector %u)\n",
