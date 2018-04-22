@@ -1,6 +1,7 @@
 import sys
 data = file(sys.argv[1], 'rb').readlines()
-uid = sys.argv[1].replace('.txt','')
+if sys.argv[1].endswith('.txt'):
+    uid = sys.argv[1][:-4]
 
 def parity(x):
     return ("{0:08b}".format(x).count('1') & 1)
