@@ -293,6 +293,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <math.h>
 
 #include "crypto1_bs_crack.h"
+#include "readnonces.h"
 #define llu PRIu64
 
 extern uint64_t * crypto1_create(uint64_t key);
@@ -578,6 +579,12 @@ void * update_nonces_thread(void* v){
 }
 
 int main (int argc, const char * argv[]) {
+
+    if(argc < 6){
+        printf("%s <known key> <for block> <A|B> <target block> <A|B>\n", argv[0]);
+        return 1;
+    }
+
     nfc_init(&context);
     pnd = nfc_open(context, NULL);
 
@@ -610,12 +617,6 @@ int main (int argc, const char * argv[]) {
         return 1;
     }
 
-    if(argc < 6){
-        printf("%s <known key> <for block> <A|B> <target block> <A|B>\n", argv[0]);
-        nfc_close(pnd);
-        return 1;
-    }
-
     known_key = strtoull(argv[1], 0, 16);
     for_block = atoi(argv[2]);
     ab_key = MC_AUTH_A;
@@ -639,15 +640,21 @@ int main (int argc, const char * argv[]) {
             break;
     }
     
-    char filename[21];
-    sprintf(filename, "0x%08x_%03u%s.txt", uid, target_block, target_key == MC_AUTH_A ? "A" : "B");
-    fp = fopen(filename, "wb");
-
     printf("Found tag with uid %04x, collecting nonces for key %s of block %u (sector %u) using known key %s %012"PRIx64" for block %u (sector %u)\n",
            uid, target_key == MC_AUTH_A ? "A" : "B", target_block, block_to_sector(target_block), ab_key == MC_AUTH_A ? "A" : "B", known_key, for_block, block_to_sector(for_block));
-    nonces_collected = 0;
+
+    char filename[21];
+    sprintf(filename, "0x%08x_%03u%s.txt", uid, target_block, target_key == MC_AUTH_A ? "A" : "B");
+    fp = fopen(filename, "r+b");
     nonces = malloc(sizeof (uint64_t) <<  24);
     memset(nonces, 0xff, sizeof (uint64_t) <<  24);
+    nonces_collected = 0;
+    if (fp == NULL) {
+        fp = fopen(filename, "wb");
+    } else {
+        nonces_collected = readnonces(fp, nonces);
+        printf("There is %lu nonces in file %s, appending\n", nonces_collected, filename);
+    }
 
     fcntl(0, F_SETFL, O_NONBLOCK);
     signal(SIGALRM, notify_status_online);
