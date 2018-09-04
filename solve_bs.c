@@ -71,15 +71,18 @@ void notify_status_offline(int sig){
 }
 
 int main(int argc, char* argv[]){
-    if(argc != 3){
-        printf("Usage: %s <nonces.txt> <uid>\n", argv[0]);
+    if(argc < 3){
+        printf("Usage: %s <nonces.txt> <uid> [threshold]\n", argv[0]);
         return -1;
     }
     printf("Reading nonces...\n");
     uint64_t *nonces = readnonces(argv[1]);
     uint32_t uid = strtoul(argv[2], NULL, 16);
+    uint32_t threshold = 95;
+    if (argc > 3)
+        threshold = atoi(argv[3]);
     printf("Deriving search space...\n");
-    space = craptev1_get_space(nonces, 95, uid);
+    space = craptev1_get_space(nonces, threshold, uid);
     total_states = craptev1_sizeof_space(space);
 
 #ifndef __WIN32
