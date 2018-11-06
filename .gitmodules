@@ -1,0 +1,6 @@
+[submodule "craptev1"]
+	path = craptev1
+	url = https://github.com/vk496/craptev1
+[submodule "proxmark3"]
+	path = proxmark3
+	url = https://github.com/Proxmark/proxmark3
