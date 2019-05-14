@@ -7,6 +7,7 @@
 #include "craptev1.h"
 #include "crypto1_bs.h"
 #include "crypto1_bs_crack.h"
+#include "readnonces.h"
 #include <inttypes.h>
 #include <math.h>
 #define __STDC_FORMAT_MACROS
@@ -19,42 +20,13 @@
 uint32_t **space;
 uint8_t thread_count = 1;
 
-uint64_t *readnonces(char* fname) {
-    int i, j;
-    FILE *f = fopen(fname, "r");
-    if (f == NULL) {
-        fprintf(stderr, "Cannot open file.\n");
-        exit(EXIT_FAILURE);
-    }
-    uint64_t *nonces = malloc(sizeof (uint64_t) <<  24);
-    uint32_t nt;
-    char par;
-
-    i = 0;
-    while(!feof(f)){
-        nonces[i] = 0;
-        for(j = 0; j < 32; j += 8) {
-            if(2 != fscanf(f, "%02x%c ", &nt, &par)) {
-                fprintf(stderr, "Input format error at line:%d\n", i);
-                fflush(stderr);
-                exit(EXIT_FAILURE);
-            }
-            nonces[i] |= nt << j | (uint64_t)((par == '!') ^ parity(nt)) << (32 + j);
-        }
-        i++;
-    }
-    nonces[i] = -1;
-    fclose(f);
-    return nonces;
-}
-
 void* crack_states_thread(void* x){
     const size_t thread_id = (size_t)x;
     int j;
     for(j = thread_id; space[j * 5]; j += thread_count) {
         const uint64_t key = crack_states_bitsliced(space + j * 5);
         if(key != -1){
-            printf("Found key: %012"llx"\n", key);
+            printf("\nFound key: %012"llx"", key);
             break;
         } else if(keys_found){
             break;
@@ -71,15 +43,33 @@ void notify_status_offline(int sig){
 }
 
 int main(int argc, char* argv[]){
-    if(argc != 3){
-        printf("Usage: %s <nonces.txt> <uid>\n", argv[0]);
+    if(argc < 3){
+        printf("Usage: %s <nonces.txt> <uid> [threshold]\n", argv[0]);
         return -1;
     }
+    FILE *fp = fopen(argv[1], "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Cannot open file\n");
+        exit(EXIT_FAILURE);
+    }
     printf("Reading nonces...\n");
-    uint64_t *nonces = readnonces(argv[1]);
+    uint64_t *nonces = malloc(sizeof (uint64_t) << 24);
+    memset(nonces, 0xff, sizeof (uint64_t) << 24);
+    if (!readnonces(fp, nonces)) {
+        fprintf(stderr, "Input format error\n");
+        exit(EXIT_FAILURE);
+    }
+    fclose(fp);
     uint32_t uid = strtoul(argv[2], NULL, 16);
+    uint32_t threshold = 95;
+    if (argc > 3)
+        threshold = atoi(argv[3]);
     printf("Deriving search space...\n");
-    space = craptev1_get_space(nonces, 95, uid);
+    space = craptev1_get_space(nonces, threshold, uid);
+    if (!space) {
+        fprintf(stderr, "Can't derive search space\n");
+        exit(EXIT_FAILURE);
+    }
     total_states = craptev1_sizeof_space(space);
 
 #ifndef __WIN32
