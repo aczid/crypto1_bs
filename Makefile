@@ -11,9 +11,9 @@ CFLAGS = -std=gnu99 -O3 -march=native
 
 all: solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
 
-CRAPTEV1 = craptev1-v1.1/craptev1.c -I craptev1-v1.1/
-CRAPTO1 = crapto1-v3.3/crapto1.c crapto1-v3.3/crypto1.c -I crapto1-v3.3/ 
-CRYPTO1_BS = crypto1_bs.c crypto1_bs_crack.c 
+CRAPTEV1 = craptev1/craptev1.c -I craptev1/
+CRAPTO1 = proxmark3/common/crapto1/crapto1.c proxmark3/common/crapto1/crypto1.c -I proxmark3/common/crapto1/ -I proxmark3/common/
+CRYPTO1_BS = crypto1_bs.c crypto1_bs_crack.c
 
 solve_bs:
 	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread -lm
@@ -29,10 +29,6 @@ libnfc_crypto1_crack:
 
 clean:
 	rm -f solve.so solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
-
-get_craptev1:
-	wget http://crapto1.netgarage.org/craptev1-v1.1.tar.xz
-	tar Jxvf craptev1-v1.1.tar.xz
 
 get_crapto1:
 	wget http://crapto1.netgarage.org/crapto1-v3.3.tar.xz
@@ -65,4 +61,3 @@ solve_piwi32.exe:
 
 solve_piwi64.exe:
 	$(MINGW64) $(CFLAGS) solve_piwi.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -static -o $@ -lpthread
-
