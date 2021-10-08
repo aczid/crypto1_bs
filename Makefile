@@ -8,6 +8,7 @@
 CC     = gcc
 
 CFLAGS = -std=gnu99 -O3 -march=native
+LDFLAGS=  -Wl,--allow-multiple-definition
 
 all: solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
 
@@ -16,25 +17,27 @@ CRAPTO1 = crapto1-v3.3/crapto1.c crapto1-v3.3/crypto1.c -I crapto1-v3.3/
 CRYPTO1_BS = crypto1_bs.c crypto1_bs_crack.c 
 
 solve_bs:
-	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread -lm
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread -lm $(LDFLAGS)
 
 solve_piwi_bs:
-	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread -lm
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread -lm $(LDFLAGS)
 
 solve_piwi:
-	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread $(LDFLAGS)
 
 libnfc_crypto1_crack:
-	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread -lnfc -lm
+	$(CC) $(CFLAGS) $@.c $(CRYPTO1_BS) $(CRAPTO1) ${CRAPTEV1} -o $@ -lpthread -lnfc -lm $(LDFLAGS)
 
 clean:
 	rm -f solve.so solve_bs solve_piwi_bs solve_piwi libnfc_crypto1_crack
 
 get_craptev1:
+	echo 'Stop being lazy, find your own file!'
 	wget http://crapto1.netgarage.org/craptev1-v1.1.tar.xz
 	tar Jxvf craptev1-v1.1.tar.xz
 
 get_crapto1:
+	echo 'Stop being lazy, find your own file!'
 	wget http://crapto1.netgarage.org/crapto1-v3.3.tar.xz
 	mkdir crapto1-v3.3
 	tar Jxvf crapto1-v3.3.tar.xz -C crapto1-v3.3
