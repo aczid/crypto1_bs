@@ -28,18 +28,20 @@ THE SOFTWARE.
 #endif
 #include "crypto1_bs_crack.h"
 
+#define DIV_ROUND_UP(x, y) (((x) + (y) - 1) / (y))
+
 inline uint64_t crack_states_bitsliced(uint32_t **task){
     // the idea to roll back the half-states before combining them was suggested/explained to me by bla
     // first we pre-bitslice all the even state bits and roll them back, then bitslice the odd bits and combine the two in the inner loop
     uint64_t key = -1;
 #ifdef EXACT_COUNT
     size_t bucket_states_tested = 0;
-    size_t bucket_size[(task[4]-task[3])/MAX_BITSLICES];
+    size_t bucket_size[DIV_ROUND_UP(task[4]-task[3], MAX_BITSLICES)];
 #else
     const size_t bucket_states_tested = (task[4]-task[3])*(task[2]-task[1]);
 #endif
     // bitslice all the even states
-    bitslice_t * restrict bitsliced_even_states[(task[4]-task[3])/MAX_BITSLICES];
+    bitslice_t * restrict bitsliced_even_states[DIV_ROUND_UP(task[4]-task[3], MAX_BITSLICES)];
     size_t bitsliced_blocks = 0;
     for(uint32_t const * restrict p_even = task[3]; p_even < task[4]; p_even+=MAX_BITSLICES){
 #ifdef __WIN32
