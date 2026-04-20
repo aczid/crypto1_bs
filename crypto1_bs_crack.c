@@ -196,15 +196,17 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
                         // make sure we still have a match in our set
                         // if(memcmp(&results, &bs_zeroes, sizeof(bitslice_t)) == 0){
 
-                        // this is much faster on my gcc, because somehow a memcmp needlessly spills/fills all the xmm registers to/from the stack - ???
-                        // the short-circuiting also helps
-                        if(results.bytes64[0] == 0
-#if MAX_BITSLICES > 64
-                           && results.bytes64[1] == 0
-#endif
-#if MAX_BITSLICES > 128
-                           && results.bytes64[2] == 0
-                           && results.bytes64[3] == 0
+                        // memcmp is slow here because gcc needlessly spills/fills xmm registers to/from the stack.
+                        // Per-word short-circuit (&&) helps on x86 but OR-reduction into a single
+                        // comparison is faster on ARM64 (generates dup.2d+orr+fmov+cbz instead of
+                        // multiple branch-on-zero sequences) and is no worse on x86 (single OR + test).
+                        if(
+#if MAX_BITSLICES <= 64
+                           results.bytes64[0] == 0
+#elif MAX_BITSLICES <= 128
+                           (results.bytes64[0] | results.bytes64[1]) == 0
+#else
+                           ((results.bytes64[0] | results.bytes64[1]) | (results.bytes64[2] | results.bytes64[3])) == 0
 #endif
                           ){
                             goto stop_tests;
