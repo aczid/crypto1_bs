@@ -34,6 +34,9 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
     // the idea to roll back the half-states before combining them was suggested/explained to me by bla
     // first we pre-bitslice all the even state bits and roll them back, then bitslice the odd bits and combine the two in the inner loop
     uint64_t key = -1;
+#ifdef ONLINE_COUNT
+    size_t local_states_count = 0;
+#endif
 #ifdef EXACT_COUNT
     size_t bucket_states_tested = 0;
     size_t bucket_size[DIV_ROUND_UP(task[4]-task[3], MAX_BITSLICES)];
@@ -144,12 +147,23 @@ inline uint64_t crack_states_bitsliced(uint32_t **task){
 
             bucket_states_tested += current_bucket_size;
 #ifdef ONLINE_COUNT
-            __atomic_fetch_add(&total_states_tested, current_bucket_size, __ATOMIC_RELAXED);
+            local_states_count += current_bucket_size;
 #endif
 #else
 #ifdef ONLINE_COUNT
-            __atomic_fetch_add(&total_states_tested, MAX_BITSLICES, __ATOMIC_RELAXED);
+            local_states_count += MAX_BITSLICES;
 #endif
+#endif
+#ifdef ONLINE_COUNT
+            // Batch atomic updates: accumulate locally and flush periodically.
+            // Direct per-block __atomic_fetch_add causes severe cache-line bouncing
+            // across threads (even with __ATOMIC_RELAXED, x86 uses a locked op).
+            // Batching at 65536 reduces atomic ops ~256x with negligible effect on
+            // progress display accuracy (updates at most ~1ms late).
+            if(local_states_count >= 65536) {
+                __atomic_fetch_add(&total_states_tested, local_states_count, __ATOMIC_RELAXED);
+                local_states_count = 0;
+            }
 #endif
             // pre-compute first keystream and feedback bit vectors
             const bitslice_value_t ksb = crypto1_bs_f20(state_p);
@@ -255,6 +269,10 @@ out:
     }
 #ifndef ONLINE_COUNT
     __atomic_fetch_add(&total_states_tested, bucket_states_tested, __ATOMIC_RELAXED);
+#else
+    // Flush remaining batched count
+    if(local_states_count > 0)
+        __atomic_fetch_add(&total_states_tested, local_states_count, __ATOMIC_RELAXED);
 #endif
     return key;
 }
